@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { useField } from "formik";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 
 const ImagePicker = ({ name }) => {
   const [field, , helpers] = useField(name);

@@ -1,4 +1,4 @@
-import SignInImage from "@/components/SigninImage";
+import SignInImage from "@/app/components/SigninImage";
 import ResetPasswordForm from "./ResetPasswordForm";
 
 export default function ResetPasswordLayout() {

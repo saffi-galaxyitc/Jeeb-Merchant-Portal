@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/app/components/ui/input";
+import { Button } from "@/app/components/ui/button";
+import { Checkbox } from "@/app/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/app/components/ui/select";
 import {
   Table,
   TableBody,
@@ -18,14 +18,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+} from "@/app/components/ui/table";
+import { Badge } from "@/app/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/app/components/ui/dropdown-menu";
 import {
   Search,
   Plus,
@@ -33,7 +33,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
+import { useRouter } from "next/navigation";
 // Sample product data
 const products = [
   {
@@ -153,7 +153,7 @@ export default function ProductsPage() {
   const [selectedTag, setSelectedTag] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
-
+  const router = useRouter();
   const itemsPerPage = 10;
 
   // Filter products based on search and filters
@@ -193,7 +193,14 @@ export default function ProductsPage() {
     }
     setSelectAll(!selectAll);
   };
-
+  const handleProductClick = async (id) => {
+    console.log("product clicked");
+    if (id) {
+      router.push(`/products/${id}`);
+    } else {
+      router.push(`/products/new`);
+    }
+  };
   // Get tag color
   const getTagColor = (tag) => {
     const colors = {
@@ -219,7 +226,10 @@ export default function ProductsPage() {
             in your app.
           </p>
         </div>
-        <Button className="bg-black px-6 py-4 text-white border-2 border-blue-600 text-lg font-medium">
+        <Button
+          className="bg-black px-6 py-4 text-white border-2 border-blue-600 text-lg font-medium cursor-pointer"
+          onClick={() => handleProductClick(null)}
+        >
           <Plus className="size-4 mr-2" />
           New Product
         </Button>
@@ -325,7 +335,10 @@ export default function ProductsPage() {
                     onCheckedChange={() => handleProductSelect(product.id)}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell
+                  onClick={() => handleProductClick(product.id)}
+                  className="cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                       <span className="text-gray-500 text-xs">IMG</span>

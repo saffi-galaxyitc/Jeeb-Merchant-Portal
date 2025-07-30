@@ -85,7 +85,7 @@ const Canvas = ({
       >
         {/* Screen */}
         <div
-          className="w-[425px] h-[667px] bg-white rounded-[1.5rem] overflow-hidden relative"
+          className="w-[425px] h-[767px] bg-white rounded-[1.5rem] overflow-hidden relative"
           onClick={handleCanvasClick}
         >
           {/* Status Bar */}

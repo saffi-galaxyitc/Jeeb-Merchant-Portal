@@ -1,8 +1,8 @@
 "use client";
 
-import ImagePicker from "@/components/ImagePicker";
-import ThemePalettePicker from "@/components/ThemePalettePicker";
-import { Button } from "@/components/ui/button";
+import ImagePicker from "@/app/components/ImagePicker";
+import ThemePalettePicker from "@/app/components/ThemePalettePicker";
+import { Button } from "@/app/components/ui/button";
 import { Field, ErrorMessage, useFormikContext } from "formik";
 import { useRef } from "react";
 

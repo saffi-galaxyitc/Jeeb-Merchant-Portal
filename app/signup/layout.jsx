@@ -1,4 +1,4 @@
-import SignupImage from "@/components/SignupImage";
+import SignupImage from "@/app/components/SignupImage";
 import SignupSteps from "./SignupSteps";
 
 export default function SignupLayout() {

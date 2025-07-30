@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +12,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import ProfileImage from "@/components/ProfileImage";
+} from "@/app/components/ui/dropdown-menu";
+import ProfileImage from "@/app/components/ProfileImage";
 
 export function ProfileItem() {
   return (

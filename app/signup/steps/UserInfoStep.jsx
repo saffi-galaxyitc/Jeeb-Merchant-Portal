@@ -7,15 +7,15 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/app/components/ui/dialog";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@/components/ui/input-otp";
+} from "@/app/components/ui/input-otp";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import { toast } from "sonner";
 
 const UserInfoStep = ({ onNext }) => {

@@ -3,8 +3,8 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
+} from "@/app/components/ui/popover";
+import { Input } from "@/app/components/ui/input";
 import { Search } from "lucide-react";
 import PageSections from "./PageSections";
 

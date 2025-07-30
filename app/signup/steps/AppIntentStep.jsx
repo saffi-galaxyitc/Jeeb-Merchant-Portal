@@ -1,7 +1,7 @@
 "use client";
 
-import DomainInputField from "@/components/DomainInputField";
-import { Button } from "@/components/ui/button";
+import DomainInputField from "@/app/components/DomainInputField";
+import { Button } from "@/app/components/ui/button";
 import { Field, ErrorMessage, useFormikContext } from "formik";
 
 const AppIntentStep = ({ onNext, onBack }) => {

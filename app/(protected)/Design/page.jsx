@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -9,7 +8,6 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
@@ -20,38 +18,64 @@ import PropertyPanel from "./components/PropertyPanel";
 import PreviewModal from "./components/PreviewModal";
 import SaveLoadModal from "./components/SaveLoadModal";
 import PageManager from "./components/PageManager";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/app/components/ui/tabs";
+import { Input } from "@/app/components/ui/input";
 import { Search } from "lucide-react";
+import { useJeebContext } from "@/app/context/JeebContext";
 
 export default function MobileBuilderPage() {
-  // Page management state
-  const [pages, setPages] = useState([
-    {
-      id: "page-1",
-      name: "Home",
-      components: [],
-      isActive: true,
-    },
-  ]);
-  const [currentPageId, setCurrentPageId] = useState("page-1");
+  const {
+    // State
+    pages,
+    currentPageId,
+    selectedComponent,
+    canvasScale,
+    designName,
+    showPreview,
+    showSaveModal,
+    showLoadModal,
+    isSaving,
+    hasUnsavedChanges,
 
-  // Existing state
-  const [selectedComponent, setSelectedComponent] = useState(null);
-  const [canvasScale, setCanvasScale] = useState(80);
-  const [showPreview, setShowPreview] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [showSaveLoad, setShowSaveLoad] = useState(false);
-  const [currentDesign, setCurrentDesign] = useState(null);
-  const [designName, setDesignName] = useState("Untitled Design");
-  const [isSaving, setIsSaving] = useState(false);
-  const [savedDesigns, setSavedDesigns] = useState([]);
-  const [currentDesignName, setCurrentDesignName] = useState("Untitled Design");
-  const [currentDesignId, setCurrentDesignId] = useState(null);
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showLoadModal, setShowLoadModal] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState({});
+    // Computed values
+    currentPage,
+    components,
+
+    // State setters
+    setDesignName,
+    setShowPreview,
+    setShowSaveModal,
+    setShowLoadModal,
+
+    // Page management
+    handleAddPage,
+    handleDeletePage,
+    handleRenamePage,
+    handleSwitchPage,
+    handleDuplicatePage,
+
+    // Component management
+    handleDragEnd,
+    handleAddComponent,
+    handleSelectComponent,
+    handleUpdateComponent,
+    handleDeleteComponent,
+    handleImageUpload,
+
+    // Design management
+    saveDesign,
+    exportDesign,
+    handleNewDesign,
+
+    // Canvas scale
+    increaseScale,
+    decreaseScale,
+  } = useJeebContext();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -60,405 +84,17 @@ export default function MobileBuilderPage() {
     })
   );
 
-  // Get current page and its components
-  const currentPage = pages.find((page) => page.id === currentPageId);
-  const components = currentPage?.components || [];
-
-  // Page management functions
-  const handleAddPage = () => {
-    const newPageId = `page-${Date.now()}`;
-    const newPage = {
-      id: newPageId,
-      name: `Page ${pages.length + 1}`,
-      components: [],
-      isActive: true,
-    };
-    setPages([...pages, newPage]);
-    setCurrentPageId(newPageId);
-    setSelectedComponent(null);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleDeletePage = (pageId) => {
-    if (pages.length <= 1) {
-      alert("Cannot delete the last page");
-      return;
-    }
-
-    if (confirm("Are you sure you want to delete this page?")) {
-      const updatedPages = pages.filter((page) => page.id !== pageId);
-      setPages(updatedPages);
-
-      // If deleted page was current, switch to first page
-      if (currentPageId === pageId) {
-        setCurrentPageId(updatedPages[0].id);
-      }
-      setSelectedComponent(null);
-      setHasUnsavedChanges(true);
-    }
-  };
-
-  const handleRenamePage = (pageId, newName) => {
-    setPages(
-      pages.map((page) =>
-        page.id === pageId ? { ...page, name: newName } : page
-      )
-    );
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSwitchPage = (pageId) => {
-    setCurrentPageId(pageId);
-    setSelectedComponent(null);
-  };
-
-  const handleDuplicatePage = (pageId) => {
-    const pageToClone = pages.find((page) => page.id === pageId);
-    if (pageToClone) {
-      const newPageId = `page-${Date.now()}`;
-      const duplicatedPage = {
-        ...pageToClone,
-        id: newPageId,
-        name: `${pageToClone.name} Copy`,
-        components: pageToClone.components.map((comp) => ({
-          ...comp,
-          id: `${comp.type}-${Date.now()}-${Math.random()
-            .toString(36)
-            .substr(2, 9)}`,
-        })),
-      };
-      setPages([...pages, duplicatedPage]);
-      setCurrentPageId(newPageId);
-      setHasUnsavedChanges(true);
-    }
-  };
-
-  // Update components for current page
-  const updateCurrentPageComponents = (newComponents) => {
-    setPages(
-      pages.map((page) =>
-        page.id === currentPageId
-          ? { ...page, components: newComponents }
-          : page
-      )
-    );
-    setHasUnsavedChanges(true);
-  };
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-
-    if (active.id !== over?.id) {
-      const oldIndex = components.findIndex((item) => item.id === active.id);
-      const newIndex = components.findIndex((item) => item.id === over?.id);
-      const newComponents = arrayMove(components, oldIndex, newIndex);
-      updateCurrentPageComponents(newComponents);
-    }
-  };
-
-  const handleAddComponent = (componentType) => {
-    const newComponent = {
-      id: `${componentType}-${Date.now()}`,
-      type: componentType,
-      position: { x: 0, y: components.length * 100 },
-      props: getDefaultProps(componentType),
-    };
-    updateCurrentPageComponents([...components, newComponent]);
-  };
-
-  const handleSelectComponent = (component) => {
-    setSelectedComponent(component);
-  };
-
-  const handleUpdateComponent = (updatedComponent) => {
-    const newComponents = components.map((comp) =>
-      comp.id === updatedComponent.id ? updatedComponent : comp
-    );
-    updateCurrentPageComponents(newComponents);
-    setSelectedComponent(updatedComponent);
-  };
-
-  const handleDeleteComponent = (componentId) => {
-    const newComponents = components.filter((comp) => comp.id !== componentId);
-    updateCurrentPageComponents(newComponents);
-    if (selectedComponent?.id === componentId) {
-      setSelectedComponent(null);
-    }
-  };
-  const handleImageUpload = (componentId, file) => {
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target.result;
-        setUploadedImages((prev) => ({
-          ...prev,
-          [componentId]: imageUrl,
-        }));
-
-        // Update component with image
-        const updatedComponent = components.find(
-          (comp) => comp.id === componentId
-        );
-        if (updatedComponent) {
-          if (updatedComponent.type === "banner") {
-            // For banner, append image to images array
-            handleUpdateComponent({
-              ...updatedComponent,
-              props: {
-                ...updatedComponent.props,
-                images: [...(updatedComponent.props.images || []), imageUrl],
-              },
-            });
-          } else {
-            // For other components (e.g., imageBlock)
-            handleUpdateComponent({
-              ...updatedComponent,
-              props: {
-                ...updatedComponent.props,
-                image: imageUrl,
-              },
-            });
-          }
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const getDefaultProps = (type) => {
-    switch (type) {
-      case "banner":
-        return {
-          images: [],
-          autoPlay: true,
-          interval: 3000,
-        };
-      case "imageRow":
-        return {
-          items: Array(8).fill({
-            image: "/Images/sampleImg.png",
-            text: "Item Text",
-          }),
-        };
-      case "subHeaderGrid":
-        return {
-          items: Array(8).fill({
-            image: "/Images/sampleImg.png",
-            text: "Item Text",
-          }),
-        };
-      case "videoText":
-        return {
-          video_url:
-            "https://videocdn.cdnpk.net/videos/a578ce73-6c51-4ad5-88c1-6f5836831b99/horizontal/previews/clear/large.mp4?token=exp=1753171926~hmac=3913b3cd8a57017ed149d1677154989cb894b3a2b36f7996ada5bacc5aa66449",
-          title: "Title Text",
-          button_text: "Button Text",
-        };
-      case "imageText":
-        return {
-          image: "",
-          title: "Title Text",
-          button_text: "Button Text",
-        };
-      case "bodyHalf":
-        return {
-          images: [],
-        };
-      case "subBodyGrid":
-        return {
-          items: Array(3).fill({
-            image: "/Images/sampleImg.png",
-            text: "Item Text",
-          }),
-        };
-      case "bodyPlain":
-        return {
-          images: [],
-          autoPlay: true,
-          interval: 3000,
-        };
-      case "bodyRound":
-        return {
-          images: [],
-          autoPlay: true,
-          interval: 3000,
-        };
-      case "brands":
-        return {
-          images: [],
-          bg_image: "",
-          title: "",
-        };
-      case "subCategBrands":
-        return {
-          images: [],
-          title: "",
-        };
-      case "productsGrid":
-        return {
-          products: [],
-          gridTitle: "",
-        };
-      default:
-        return {};
-    }
-  };
-
-  const saveDesign = async () => {
-    setIsSaving(true);
-    const designData = {
-      name: designName,
-      pages: pages, // Save all pages instead of just components
-      metadata: {
-        created: new Date().toISOString(),
-        version: "2.0", // Updated version for multi-page support
-        pagesCount: pages.length,
-        totalComponents: pages.reduce(
-          (total, page) => total + page.components.length,
-          0
-        ),
-      },
-    };
-
-    // try {
-    //   const response = await fetch("/api/designs", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(designData),
-    //   });
-
-    // if (response.ok) {
-    //   const savedDesign = await response.json();
-    //   setSavedDesigns([...savedDesigns, savedDesign]);
-    setSavedDesigns([...savedDesigns, designData]);
-    setHasUnsavedChanges(false);
-    alert("Design saved successfully!");
-    console.log("saved designs", savedDesigns);
-    // } else {
-    //   alert("Failed to save design");
-    // }
-    // } catch (error) {
-    //   console.error("Error saving design:", error);
-    //   alert("Error saving design");
-    // } finally {
-    setIsSaving(false);
-    // }
-  };
-
-  const loadDesign = async (designId) => {
-    try {
-      const response = await fetch(`/api/designs/${designId}`);
-      if (response.ok) {
-        const design = await response.json();
-
-        // Handle both old (single page) and new (multi-page) designs
-        if (design.pages) {
-          setPages(design.pages);
-          setCurrentPageId(design.pages[0]?.id || "page-1");
-        } else if (design.components) {
-          // Convert old single-page design to multi-page format
-          setPages([
-            {
-              id: "page-1",
-              name: "Home",
-              components: design.components,
-              isActive: true,
-            },
-          ]);
-          setCurrentPageId("page-1");
-        }
-
-        setDesignName(design.name);
-        setSelectedComponent(null);
-        setHasUnsavedChanges(false);
-      }
-    } catch (error) {
-      console.error("Error loading design:", error);
-    }
-  };
-
-  const exportDesign = () => {
-    const designData = {
-      name: designName,
-      pages: pages,
-      metadata: {
-        created: new Date().toISOString(),
-        version: "2.0",
-        pagesCount: pages.length,
-        totalComponents: pages.reduce(
-          (total, page) => total + page.components.length,
-          0
-        ),
-      },
-    };
-
-    const dataStr = JSON.stringify(designData, null, 2);
-    const dataUri =
-      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${designName.replace(/\s+/g, "_")}.json`;
-
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
-  };
-
   const handleSaveDesign = (savedDesign) => {
-    setCurrentDesignName(savedDesign.name);
-    setCurrentDesignId(savedDesign.id);
-    setHasUnsavedChanges(false);
     alert("Design saved successfully!");
   };
 
   const handleLoadDesign = (loadedDesign) => {
     if (loadedDesign.pages) {
-      setPages(loadedDesign.pages);
-      setCurrentPageId(loadedDesign.pages[0]?.id || "page-1");
+      // Handle through context
     } else if (loadedDesign.components) {
-      // Convert old format
-      setPages([
-        {
-          id: "page-1",
-          name: "Home",
-          components: loadedDesign.components,
-          isActive: true,
-        },
-      ]);
-      setCurrentPageId("page-1");
+      // Handle through context
     }
-
-    setCurrentDesignName(loadedDesign.name);
-    setCurrentDesignId(loadedDesign.id);
-    setSelectedComponent(null);
-    setHasUnsavedChanges(false);
     alert("Design loaded successfully!");
-  };
-
-  const handleNewDesign = () => {
-    if (
-      hasUnsavedChanges &&
-      !confirm(
-        "You have unsaved changes. Are you sure you want to create a new design?"
-      )
-    ) {
-      return;
-    }
-
-    setPages([
-      {
-        id: "page-1",
-        name: "Home",
-        components: [],
-        isActive: true,
-      },
-    ]);
-    setCurrentPageId("page-1");
-    setSelectedComponent(null);
-    setCurrentDesignName("Untitled Design");
-    setCurrentDesignId(null);
-    setHasUnsavedChanges(false);
   };
 
   return (
@@ -532,16 +168,14 @@ export default function MobileBuilderPage() {
               />
               <div className="flex items-center space-x-2 ml-8">
                 <button
-                  onClick={() => setCanvasScale(Math.max(50, canvasScale - 10))}
+                  onClick={decreaseScale}
                   className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
                 >
                   -
                 </button>
                 <span className="text-sm font-medium">{canvasScale}%</span>
                 <button
-                  onClick={() =>
-                    setCanvasScale(Math.min(150, canvasScale + 10))
-                  }
+                  onClick={increaseScale}
                   className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
                 >
                   +
@@ -549,20 +183,20 @@ export default function MobileBuilderPage() {
               </div>
 
               {/* Current Page Indicator */}
-              <div className="flex items-center space-x-2 ml-8 px-3 py-1 bg-blue-50 rounded-md">
+              {/* <div className="flex items-center space-x-2 ml-8 px-3 py-1 bg-blue-50 rounded-md">
                 <span className="text-sm text-blue-600 font-medium">
                   {currentPage?.name || "Page"} • {components.length} components
                 </span>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center space-x-3">
-              <button
+              {/* <button
                 onClick={() => setShowPreview(true)}
                 className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
               >
                 Preview
-              </button>
+              </button> */}
               <button
                 onClick={saveDesign}
                 disabled={isSaving}
@@ -575,6 +209,24 @@ export default function MobileBuilderPage() {
                 className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
               >
                 Export
+              </button>
+              {/* <button
+                onClick={() => setShowSaveModal(true)}
+                className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+              >
+                Save As
+              </button> */}
+              {/* <button
+                onClick={() => setShowLoadModal(true)}
+                className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+              >
+                Load
+              </button> */}
+              <button
+                onClick={handleNewDesign}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                New
               </button>
             </div>
           </div>
@@ -626,7 +278,7 @@ export default function MobileBuilderPage() {
         {/* Preview Modal */}
         {showPreview && (
           <PreviewModal
-            pages={pages} // Pass all pages instead of just components
+            pages={pages}
             currentPageId={currentPageId}
             onClose={() => setShowPreview(false)}
           />

@@ -7,7 +7,7 @@ import UserInfoStep from "./steps/UserInfoStep";
 import AppIntentStep from "./steps/AppIntentStep";
 import AppStylingStep from "./steps/AppStylingStep";
 import FinishStep from "./steps/FinishStep";
-import Stepper from "@/components/Stepper";
+import Stepper from "@/app/components/Stepper";
 
 const initialValues = {
   // First step

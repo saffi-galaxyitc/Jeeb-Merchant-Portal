@@ -1,22 +1,16 @@
 "use client";
 
-import { SplinePointer, LayoutDashboard, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils"; // ShadCN's utility for classnames
 import { usePathname } from "next/navigation";
-import { ProfileItem } from "@/app/(protected)/Design/components/ProfileItem";
-
-const navItems = [
-  { href: "/Design", icon: SplinePointer, label: "Design" },
-  { href: "/Products", icon: LayoutDashboard, label: "Products" },
-  { href: "/Settings", icon: Settings, label: "Settings" },
-];
+import { ProfileItem } from "@/app/(protected)/design/components/ProfileItem";
+import { useJeebContext } from "../context/JeebContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
-
+  const { navItems } = useJeebContext();
   return (
-    <aside className="h-screen w-16 bg-white text-black flex flex-col items-center justify-center py-4 space-y-4 border-r border-gray-200">
+    <aside className="h-screen w-20 bg-white text-black flex flex-col items-center justify-center py-4 space-y-4 border-r border-gray-200">
       <div className="flex flex-col items-center justify-center mt-8">
         {navItems.map(({ href, icon: Icon, label }) => (
           <Link key={href} href={href} passHref>
@@ -35,15 +29,6 @@ export default function Sidebar() {
 
       <div className="mt-auto">
         <ProfileItem />
-        {/* <button
-          title="Logout"
-          className="p-3 rounded-lg hover:bg-red-600 transition-all"
-          onClick={() => {
-            // handle logout here
-          }}
-        >
-          <LogOut className="w-5 h-5" />
-        </button> */}
       </div>
     </aside>
   );

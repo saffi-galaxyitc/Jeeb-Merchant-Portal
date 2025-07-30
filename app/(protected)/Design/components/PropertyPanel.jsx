@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pencil, Check } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/app/components/ui/input";
 import { sampleProducts } from "@/lib/utils";
 const PropertyPanel = ({
   selectedComponent,

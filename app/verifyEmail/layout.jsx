@@ -1,4 +1,4 @@
-import SignInImage from "@/components/SigninImage";
+import SignInImage from "@/app/components/SigninImage";
 import VerifyEmailForm from "./verifyEmailForm";
 
 export default function verifyEmailLayout() {

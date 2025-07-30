@@ -4,7 +4,7 @@ import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "@/components/ui/collapsible";
+} from "@/app/components/ui/collapsible";
 import {
   Dialog,
   DialogTrigger,
@@ -12,9 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+} from "@/app/components/ui/dialog";
+import { Input } from "@/app/components/ui/input";
+import { Button } from "@/app/components/ui/button";
 
 import { Plus, ChevronDown, Trash2 } from "lucide-react";
 
@@ -81,13 +81,24 @@ export default function PageSections({
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => handleRemoveSection(component.id)}
                     className="ml-auto text-gray-400 hover:text-red-500"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </button> */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveSection(component.id);
+                    }}
+                    className="ml-auto text-gray-400 hover:text-red-500 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </div>
                   <ChevronDown className="h-4 w-4" />
                 </div>
               </CollapsibleTrigger>
