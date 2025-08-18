@@ -140,7 +140,7 @@ const Canvas = ({
       </div>
 
       {/* Canvas Info */}
-      <div className="absolute top-0 right-0 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-bl">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-lg">
         {scale}% • {components.length} components
       </div>
 

@@ -6,22 +6,18 @@ import ColorThief from "color-thief-browser";
 const ThemePalettePicker = ({ imageUrl, onSelectPalette }) => {
   const imageRef = useRef(null);
   const [colors, setColors] = useState([]);
-  const [selected, setSelected] = useState({
-    primary: null,
-    secondary: null,
-  });
+  const [selectedColor, setSelectedColor] = useState(null);
 
-  const handleColorSelect = (type, color) => {
-    const alreadySelected = selected[type]?.toString() === color.toString();
-    const newSelection = {
-      ...selected,
-      [type]: alreadySelected ? null : color,
-    };
-    setSelected(newSelection);
-    onSelectPalette({
-      primary: newSelection.primary,
-      secondary: newSelection.secondary,
-    });
+  const handleColorSelect = (color) => {
+    const hex = `#${color
+      .map((c) => c.toString(16).padStart(2, "0"))
+      .join("")}`;
+
+    const alreadySelected = selectedColor === hex;
+    const newSelection = alreadySelected ? null : hex;
+
+    setSelectedColor(newSelection);
+    onSelectPalette(newSelection);
   };
 
   const extractPalette = async () => {
@@ -59,51 +55,33 @@ const ThemePalettePicker = ({ imageUrl, onSelectPalette }) => {
       {colors.length > 0 && (
         <div className="flex flex-col gap-2">
           <p className="text-sm text-slate-500 leading-relaxed">
-            <strong className="text-slate-700">Note:</strong> Select your app’s{" "}
-            <span className="font-medium text-slate-600">primary</span> and{" "}
-            <span className="font-medium text-slate-600">secondary</span> theme
-            colors using the palette below. Once chosen, you can{" "}
-            <span className="italic">fine-tune</span> them by clicking on the
-            color bubbles.
+            <strong className="text-slate-700">Note:</strong> Select your app's{" "}
+            <span className="font-medium text-slate-600">theme color</span>{" "}
+            using the palette below. Once chosen, you can{" "}
+            <span className="italic">fine-tune</span> it by clicking on the
+            color bubble above.
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-4 outline-dashed rounded-lg p-4">
             {colors.map((color, idx) => {
               const hex = `#${color
                 .map((c) => c.toString(16).padStart(2, "0"))
                 .join("")}`;
+              const isSelected = selectedColor === hex;
+
               return (
                 <div key={idx} className="space-y-1 text-center">
                   <button
-                    className={`w-12 h-12 rounded-full border-4 ${
-                      selected.primary?.toString() === color.toString()
-                        ? "border-blue-500"
-                        : selected.secondary?.toString() === color.toString()
-                        ? "border-green-500"
-                        : "border-white"
+                    className={`w-12 h-12 rounded-full ${
+                      isSelected
+                        ? "outline-blue-500 outline-4 outline-offset-4 outline-dashed"
+                        : "outline-none"
                     }`}
                     style={{ backgroundColor: hex }}
-                    onClick={() => {
-                      if (!selected.primary) {
-                        handleColorSelect("primary", color);
-                      } else if (
-                        selected.primary?.toString() !== color.toString() &&
-                        !selected.secondary
-                      ) {
-                        handleColorSelect("secondary", color);
-                      } else if (
-                        selected.primary?.toString() === color.toString()
-                      ) {
-                        handleColorSelect("primary", color);
-                      } else if (
-                        selected.secondary?.toString() === color.toString()
-                      ) {
-                        handleColorSelect("secondary", color);
-                      }
-                    }}
+                    onClick={() => handleColorSelect(color)}
                     title={hex}
                     type="button"
                   />
-                  <div className="text-xs">{hex}</div>
+                  <div className="text-xs my-3">{hex}</div>
                 </div>
               );
             })}

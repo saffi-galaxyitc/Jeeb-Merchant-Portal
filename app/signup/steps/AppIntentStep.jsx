@@ -2,7 +2,10 @@
 
 import DomainInputField from "@/app/components/DomainInputField";
 import { Button } from "@/app/components/ui/button";
+import { app_check, domain_check, store_types } from "@/DAL/signup";
 import { Field, ErrorMessage, useFormikContext } from "formik";
+import { useEffect, useState } from "react";
+import SearchableIntentSelect from "../utils/SearchableIntentSelect";
 
 const AppIntentStep = ({ onNext, onBack }) => {
   const {
@@ -14,7 +17,44 @@ const AppIntentStep = ({ onNext, onBack }) => {
     setFieldTouched,
     setErrors,
   } = useFormikContext();
-
+  const [intentList, setIntentList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const handleDomainNameCheck = async (e) => {
+    try {
+      const domain = e?.target?.value || "";
+      if (!domain) return;
+      const response = await domain_check({ payload: { sub_domain: domain } });
+      console.log("domain check resp:", response);
+      const result = response?.data?.result;
+      if (result?.result?.exists) {
+        // If email exists, set Formik field error
+        setFieldError(
+          "domain",
+          "Domain name is already taken. Please use another."
+        );
+      }
+    } catch (err) {
+      console.error("Domain name verification failed:", err);
+    }
+  };
+  const handleAppNameCheck = async (e) => {
+    try {
+      const app_name = e?.target?.value || "";
+      if (!app_name) return;
+      const response = await app_check({ payload: { app_name } });
+      console.log("app name check resp:", response);
+      const result = response?.data?.result;
+      if (result?.result?.exists) {
+        // If email exists, set Formik field error
+        setFieldError(
+          "app_name",
+          "App name is already taken. Please use another."
+        );
+      }
+    } catch (err) {
+      console.error("App name verification failed:", err);
+    }
+  };
   const handleNext = async (values, actions) => {
     // Validate the current Formik step first
     const errors = await actions.validateForm();
@@ -32,6 +72,27 @@ const AppIntentStep = ({ onNext, onBack }) => {
     }
     onNext(values, actions.setTouched);
   };
+  const getIntent = async (search = "") => {
+    try {
+      const payload = { name: search }; // search term
+      const response = await store_types({ payload });
+      const result = response?.data?.result;
+
+      if (result?.code === 200) {
+        const formattedOptions = (result?.result || []).map((item) => ({
+          value: item.id, // select value
+          label: item.name, // select label
+        }));
+        setIntentList(formattedOptions);
+      }
+    } catch (error) {
+      console.error("Error fetching intents:", error);
+    }
+  };
+
+  useEffect(() => {
+    getIntent();
+  }, []);
   return (
     <div className="max-w-md w-full bg-white p-8 rounded-2xl">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">
@@ -41,27 +102,20 @@ const AppIntentStep = ({ onNext, onBack }) => {
         name="app_name"
         placeholder="App Name"
         className="h-56 w-full my-2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+        onBlur={handleAppNameCheck}
       />
       <ErrorMessage
         name="app_name"
         component="div"
         className="text-red-500 text-sm mb-2"
       />
-      <Field
-        as="select"
+
+      <SearchableIntentSelect
         name="intent"
-        className="h-56 w-full my-2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-      >
-        <option value="" disabled hidden>
-          Select an intent
-        </option>
-        <option value="Books and stationery">Books and stationery</option>
-        <option value="Fashion and accessories">Fashion and accessories</option>
-        <option value="Electronics and gadgets">Electronics and gadgets</option>
-        <option value="Home and living">Home and living</option>
-        <option value="Health and wellness">Health and wellness</option>
-        <option value="Other">Other</option>
-      </Field>
+        options={intentList}
+        onSearch={(inputValue) => getIntent(inputValue)}
+        onFocus={() => getIntent("")} // load default list when focused
+      />
 
       <ErrorMessage
         name="intent"
@@ -69,17 +123,11 @@ const AppIntentStep = ({ onNext, onBack }) => {
         className="text-red-500 text-sm mb-2"
       />
 
-      {/* <div className="relative flex rounded-lg shadow-sm my-2">
-        <Field
-          name="domain"
-          placeholder="App Domain"
-          className="h-56 w-full px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-600 focus:outline-none text-sm rounded-none"
-        />
-        <span className="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-gray-300 text-gray-500 text-sm  focus:ring-2 focus:ring-blue-600 focus:outline-none text-sm rounded-none">
-          .galaxysolutions.com
-        </span>
-      </div> */}
-      <DomainInputField name="domain" placeholder="App Domain" />
+      <DomainInputField
+        name="domain"
+        placeholder="App Domain"
+        onBlur={handleDomainNameCheck}
+      />
       <ErrorMessage
         name="domain"
         component="div"

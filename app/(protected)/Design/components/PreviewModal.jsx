@@ -1,111 +1,19 @@
-// import { useEffect } from "react";
-// import MobileComponent from "./MobileComponent";
-
-// const PreviewModal = ({ components, onClose }) => {
-//   // Close modal on ESC key
-//   useEffect(() => {
-//     const handleEscKey = (event) => {
-//       if (event.key === "Escape") {
-//         onClose();
-//       }
-//     };
-
-//     document.addEventListener("keydown", handleEscKey);
-//     return () => document.removeEventListener("keydown", handleEscKey);
-//   }, [onClose]);
-
-//   // Prevent body scroll when modal is open
-//   useEffect(() => {
-//     document.body.style.overflow = "hidden";
-//     return () => {
-//       document.body.style.overflow = "unset";
-//     };
-//   }, []);
-
-//   return (
-//     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-//       {/* Modal Container */}
-//       <div className="relative max-w-sm mx-auto">
-//         {/* Close Button */}
-//         <button
-//           onClick={onClose}
-//           className="absolute -top-12 right-0 text-white hover:text-gray-300 text-2xl font-bold z-10"
-//         >
-//           ×
-//         </button>
-
-//         {/* Mobile Frame - Full Size */}
-//         <div className="relative bg-black rounded-[2rem] p-2 shadow-2xl">
-//           {/* Screen */}
-//           <div className="w-[375px] h-[667px] bg-white rounded-[1.5rem] overflow-hidden relative">
-//             {/* Status Bar */}
-//             <div className="h-11 bg-white flex items-center justify-between px-4 text-xs font-medium">
-//               <div className="flex items-center space-x-1">
-//                 <span>9:41</span>
-//               </div>
-//               <div className="flex items-center space-x-1">
-//                 <div className="w-4 h-2 bg-black rounded-sm"></div>
-//                 <div className="w-6 h-3 border border-black rounded-sm">
-//                   <div className="w-4 h-1 bg-black rounded-sm mt-0.5 ml-0.5"></div>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* App Content */}
-//             <div className="h-[calc(100%-44px)] overflow-y-auto">
-//               {components.length === 0 ? (
-//                 <div className="flex items-center justify-center h-full text-gray-400">
-//                   <div className="text-center">
-//                     <div className="text-6xl mb-4">📱</div>
-//                     <p className="text-sm">No components added</p>
-//                   </div>
-//                 </div>
-//               ) : (
-//                 <div className="relative">
-//                   {components.map((component) => (
-//                     <div key={component.id} className="relative">
-//                       <MobileComponent
-//                         component={component}
-//                         isSelected={false}
-//                         onUpdate={() => {}} // No editing in preview
-//                         onDelete={() => {}} // No deleting in preview
-//                         isPreview={true}
-//                       />
-//                     </div>
-//                   ))}
-//                 </div>
-//               )}
-//             </div>
-//           </div>
-
-//           {/* Home Indicator */}
-//           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-white rounded-full"></div>
-//         </div>
-
-//         {/* Instructions */}
-//         <div className="text-center mt-4 text-white text-sm">
-//           <p>
-//             Press <kbd className="bg-gray-700 px-2 py-1 rounded">ESC</kbd> to
-//             close
-//           </p>
-//         </div>
-//       </div>
-
-//       {/* Background Click to Close */}
-//       <div className="absolute inset-0 -z-10" onClick={onClose}></div>
-//     </div>
-//   );
-// };
-
-// export default PreviewModal;
 import { useEffect, useState } from "react";
 import MobileComponent from "./MobileComponent";
+import { useJeebContext } from "@/app/context/JeebContext";
 
 const PreviewModal = ({ pages, currentPageId, onClose }) => {
   const [previewPageId, setPreviewPageId] = useState(currentPageId);
 
   const currentPage = pages.find((page) => page.id === previewPageId);
   const components = currentPage?.components || [];
+  const {
+    handleComponentClick,
+    updateComponentNavigation,
+    updateImageNavigation,
+    updateProductNavigation,
+    updateItemNavigation,
+  } = useJeebContext();
 
   // Close modal on ESC key
   useEffect(() => {
@@ -126,6 +34,9 @@ const PreviewModal = ({ pages, currentPageId, onClose }) => {
       document.body.style.overflow = "unset";
     };
   }, []);
+  useEffect(() => {
+    setPreviewPageId(currentPageId);
+  }, [currentPageId]);
 
   // Handle keyboard navigation between pages
   useEffect(() => {
@@ -285,6 +196,11 @@ const PreviewModal = ({ pages, currentPageId, onClose }) => {
                         onUpdate={() => {}} // No editing in preview
                         onDelete={() => {}} // No deleting in preview
                         isPreview={true}
+                        handleComponentClick={handleComponentClick}
+                        updateComponentNavigation={updateComponentNavigation}
+                        updateImageNavigation={updateImageNavigation}
+                        updateProductNavigation={updateProductNavigation}
+                        updateItemNavigation={updateItemNavigation}
                       />
                     </div>
                   ))}

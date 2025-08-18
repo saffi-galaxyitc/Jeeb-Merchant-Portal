@@ -25,8 +25,9 @@ import {
   TabsTrigger,
 } from "@/app/components/ui/tabs";
 import { Input } from "@/app/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useJeebContext } from "@/app/context/JeebContext";
+import { useEffect, useState } from "react";
 
 export default function MobileBuilderPage() {
   const {
@@ -35,6 +36,7 @@ export default function MobileBuilderPage() {
     currentPageId,
     selectedComponent,
     canvasScale,
+    setCanvasScale,
     designName,
     showPreview,
     showSaveModal,
@@ -76,7 +78,8 @@ export default function MobileBuilderPage() {
     increaseScale,
     decreaseScale,
   } = useJeebContext();
-
+  const [openPalette, setOpenPalette] = useState(true);
+  const [openProps, setOpenProps] = useState(true);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -96,16 +99,57 @@ export default function MobileBuilderPage() {
     }
     alert("Design loaded successfully!");
   };
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+
+      // When width decreases to 1370px or below
+      if (width <= 1370) {
+        setOpenPalette(false);
+        setOpenProps(false);
+      } else {
+        // Reset to true when width is above 1370px
+        setOpenPalette(true);
+        setOpenProps(true);
+      }
+
+      // When width reaches 768px or below (tablet/mobile breakpoint)
+      if (width < 768) {
+        // calculate scale in steps of 10
+        // e.g. width 760 → 70, width 700 → 60, etc.
+        const step = Math.floor((768 - width) / 100) + 1;
+        const newScale = Math.max(60, 80 - step * 10); // never below 10
+        setCanvasScale(newScale);
+      } else {
+        setCanvasScale(80); // reset to default when back on bigger screens
+      }
+    };
+
+    // Set initial state based on current window size
+    handleResize();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="h-screen bg-gray-100 flex">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
         {/* Component Palette */}
-        <div className="w-100 bg-white border-r border-gray-200 flex flex-col">
+        <div
+          className={`${
+            openPalette ? "w-100" : "w-0"
+          } bg-white border-r border-gray-200 flex flex-col overflow-y-scroll transition-all duration-300 ease-in-out`}
+        >
           <Tabs defaultValue="pageManager" className="w-[400px]">
             <TabsList className="w-84 mt-6 mx-auto p-2 flex-1 flex justify-center">
               <TabsTrigger
@@ -132,6 +176,10 @@ export default function MobileBuilderPage() {
                   onRenamePage={handleRenamePage}
                   onSwitchPage={handleSwitchPage}
                   onDuplicatePage={handleDuplicatePage}
+                  selectedComponent={selectedComponent}
+                  onSelectComponent={handleSelectComponent}
+                  onUpdateComponent={handleUpdateComponent}
+                  onDeleteComponent={handleDeleteComponent}
                 />
               </div>
             </TabsContent>
@@ -156,31 +204,38 @@ export default function MobileBuilderPage() {
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-y-scroll">
           {/* Toolbar */}
-          <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setOpenPalette(!openPalette)}
+              className="p-2 bg-gray-100 border border-gray-300 rounded-r-lg hover:bg-gray-200 transition"
+            >
+              {openPalette ? (
+                <ChevronLeft size={20} />
+              ) : (
+                <ChevronRight size={20} />
+              )}
+            </button>
+            <button
+              onClick={() => setOpenProps(!openProps)}
+              className="p-2 bg-gray-100 border border-gray-300 rounded-l-lg hover:bg-gray-200 transition"
+            >
+              {openProps ? (
+                <ChevronRight size={20} />
+              ) : (
+                <ChevronLeft size={20} />
+              )}
+            </button>
+          </div>
+          <div className="bg-white border-b border-gray-200 p-4 flex flex-wrap items-center sm:justify-between justify-start">
+            <div className="flex items-center gap-2 w-auto">
               <input
                 type="text"
                 value={designName}
                 onChange={(e) => setDesignName(e.target.value)}
-                className="text-lg font-semibold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500 px-2 py-1 rounded"
+                className="text-sm font-semibold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500 px-2 py-1 rounded"
               />
-              <div className="flex items-center space-x-2 ml-8">
-                <button
-                  onClick={decreaseScale}
-                  className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                >
-                  -
-                </button>
-                <span className="text-sm font-medium">{canvasScale}%</span>
-                <button
-                  onClick={increaseScale}
-                  className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                >
-                  +
-                </button>
-              </div>
 
               {/* Current Page Indicator */}
               {/* <div className="flex items-center space-x-2 ml-8 px-3 py-1 bg-blue-50 rounded-md">
@@ -189,24 +244,32 @@ export default function MobileBuilderPage() {
                 </span>
               </div> */}
             </div>
-
-            <div className="flex items-center space-x-3">
-              {/* <button
-                onClick={() => setShowPreview(true)}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            <div className="flex items-center gap-2 mx-2 w-auto mt-2 sm:mt-0">
+              <button
+                onClick={decreaseScale}
+                className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
               >
-                Preview
-              </button> */}
+                -
+              </button>
+              <span className="text-sm font-medium">{canvasScale}%</span>
+              <button
+                onClick={increaseScale}
+                className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                +
+              </button>
+            </div>
+            <div className="flex items-center gap-2 w-auto mt-2 sm:mt-0">
               <button
                 onClick={saveDesign}
                 disabled={isSaving}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
               >
                 {isSaving ? "Saving..." : "Save"}
               </button>
               <button
                 onClick={exportDesign}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
               >
                 Export
               </button>
@@ -224,7 +287,7 @@ export default function MobileBuilderPage() {
               </button> */}
               <button
                 onClick={handleNewDesign}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
               >
                 New
               </button>
@@ -266,8 +329,14 @@ export default function MobileBuilderPage() {
         </div>
 
         {/* Property Panel */}
-        <div className="w-80 bg-white border-l border-gray-200 p-4">
-          <h2 className="text-lg font-semibold mb-4">Properties</h2>
+        <div
+          className={`${
+            openProps ? "w-100 p-4" : "w-0 p-0"
+          } bg-white border-l border-gray-200 overflow-y-scroll transition-all duration-300 ease-in-out`}
+        >
+          <h2 className="bg-muted h-16 items-center rounded-lg w-84 mt-2 text-lg mx-auto p-2 flex-1 flex justify-center">
+            Properties
+          </h2>
           <PropertyPanel
             selectedComponent={selectedComponent}
             onUpdateComponent={handleUpdateComponent}
@@ -281,6 +350,7 @@ export default function MobileBuilderPage() {
             pages={pages}
             currentPageId={currentPageId}
             onClose={() => setShowPreview(false)}
+            components={components}
           />
         )}
       </DndContext>

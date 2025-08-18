@@ -20,13 +20,14 @@ const STORAGE_KEYS = {
   CANVAS_SCALE: "jeeb_canvas_scale",
   SELECTED_COMPONENT: "jeeb_selected_component",
 };
+
 const navItems = [
   { href: "/design", icon: SplinePointer, label: "Design" },
   { href: "/products", icon: LayoutDashboard, label: "Products" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
-// Default props for different component types
+// Default props for different component types (enhanced with navigation)
 const getDefaultProps = (type) => {
   switch (type) {
     case "banner":
@@ -34,12 +35,18 @@ const getDefaultProps = (type) => {
         images: [],
         autoPlay: true,
         interval: 3000,
+        // Each image can have navigation
+        imageNavigation: [], // Array of {imageIndex: number, targetPageId: string, enabled: boolean}
       };
     case "imageRow":
       return {
         items: Array(8).fill({
           image: "/Images/sampleImg.png",
           text: "Item Text",
+          navigation: {
+            enabled: false,
+            targetPageId: null,
+          },
         }),
       };
     case "subHeaderGrid":
@@ -47,30 +54,46 @@ const getDefaultProps = (type) => {
         items: Array(8).fill({
           image: "/Images/sampleImg.png",
           text: "Item Text",
+          navigation: {
+            enabled: false,
+            targetPageId: null,
+          },
         }),
       };
     case "videoText":
       return {
-        video_url:
-          "https://videocdn.cdnpk.net/videos/a578ce73-6c51-4ad5-88c1-6f5836831b99/horizontal/previews/clear/large.mp4?token=exp=1753171926~hmac=3913b3cd8a57017ed149d1677154989cb894b3a2b36f7996ada5bacc5aa66449",
+        video_url: "",
         title: "Title Text",
         button_text: "Button Text",
+        navigation: {
+          enabled: false,
+          targetPageId: null,
+        },
       };
     case "imageText":
       return {
         image: "",
         title: "Title Text",
         button_text: "Button Text",
+        navigation: {
+          enabled: false,
+          targetPageId: null,
+        },
       };
     case "bodyHalf":
       return {
         images: [],
+        imageNavigation: [], // Array of {imageIndex: number, targetPageId: string, enabled: boolean}
       };
     case "subBodyGrid":
       return {
         items: Array(3).fill({
           image: "/Images/sampleImg.png",
           text: "Item Text",
+          navigation: {
+            enabled: false,
+            targetPageId: null,
+          },
         }),
       };
     case "bodyPlain":
@@ -78,28 +101,33 @@ const getDefaultProps = (type) => {
         images: [],
         autoPlay: true,
         interval: 3000,
+        imageNavigation: [], // Array of {imageIndex: number, targetPageId: string, enabled: boolean}
       };
     case "bodyRound":
       return {
         images: [],
         autoPlay: true,
         interval: 3000,
+        imageNavigation: [], // Array of {imageIndex: number, targetPageId: string, enabled: boolean}
       };
     case "brands":
       return {
         images: [],
         bg_image: "",
         title: "",
+        imageNavigation: [], // Array of {imageIndex: number, targetPageId: string, enabled: boolean}
       };
     case "subCategBrands":
       return {
         images: [],
         title: "",
+        imageNavigation: [], // Array of {imageIndex: number, targetPageId: string, enabled: boolean}
       };
     case "productsGrid":
       return {
         products: [],
         gridTitle: "",
+        productNavigation: [], // Array of {productIndex: number, targetPageId: string, enabled: boolean}
       };
     default:
       return {};
@@ -133,6 +161,7 @@ export function JeebContextProvider({ children }) {
 
   const openPaymentModal = () => setIsPaymentModalOpen(true);
   const closePaymentModal = () => setIsPaymentModalOpen(false);
+
   // Core state
   const [pages, setPages] = useState([]);
   const [currentPageId, setCurrentPageId] = useState("page-1");
@@ -147,6 +176,11 @@ export function JeebContextProvider({ children }) {
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Navigation state
+  const [navigationHistory, setNavigationHistory] = useState([]);
+  const [canGoBack, setCanGoBack] = useState(false);
+  const [allowEditModeNavigation, setAllowEditModeNavigation] = useState(false);
 
   // Initialize state from localStorage
   useEffect(() => {
@@ -201,6 +235,211 @@ export function JeebContextProvider({ children }) {
   const currentPage = pages.find((page) => page.id === currentPageId);
   const components = currentPage?.components || [];
 
+  // Navigation functions
+  const navigateToPage = useCallback(
+    (targetPageId, addToHistory = true) => {
+      const targetPage = pages.find((page) => page.id === targetPageId);
+      if (!targetPage) {
+        console.warn(`Page with id "${targetPageId}" not found`);
+        return false;
+      }
+
+      if (addToHistory && currentPageId !== targetPageId) {
+        setNavigationHistory((prev) => [...prev, currentPageId]);
+        setCanGoBack(true);
+      }
+
+      setCurrentPageId(targetPageId);
+      setSelectedComponent(null);
+      return true;
+    },
+    [pages, currentPageId]
+  );
+
+  const goBack = useCallback(() => {
+    if (navigationHistory.length > 0) {
+      const previousPageId = navigationHistory[navigationHistory.length - 1];
+      setNavigationHistory((prev) => prev.slice(0, -1));
+      setCanGoBack(navigationHistory.length > 1);
+      setCurrentPageId(previousPageId);
+      setSelectedComponent(null);
+    }
+  }, [navigationHistory]);
+
+  const clearNavigationHistory = useCallback(() => {
+    setNavigationHistory([]);
+    setCanGoBack(false);
+  }, []);
+
+  // Handle component click navigation
+  const handleComponentClick = useCallback(
+    (componentId, clickData) => {
+      const component = components.find((comp) => comp.id === componentId);
+      if (!component) return;
+
+      const { type, index, targetPageId } = clickData;
+
+      switch (type) {
+        case "image":
+          // Handle image clicks for banner, bodyPlain, bodyRound, etc.
+          const imageNav = component.props.imageNavigation?.find(
+            (nav) => nav.imageIndex === index && nav.enabled
+          );
+          if (imageNav && imageNav.targetPageId) {
+            navigateToPage(imageNav.targetPageId);
+          }
+          break;
+
+        case "item":
+          // Handle item clicks for imageRow, subHeaderGrid, subBodyGrid
+          const item = component.props.items?.[index];
+          if (item?.navigation?.enabled && item.navigation.targetPageId) {
+            navigateToPage(item.navigation.targetPageId);
+          }
+          break;
+
+        case "product":
+          // Handle product clicks for productsGrid
+          const productNav = component.props.productNavigation?.find(
+            (nav) => nav.productIndex === index && nav.enabled
+          );
+          if (productNav && productNav.targetPageId) {
+            navigateToPage(productNav.targetPageId);
+          }
+          break;
+
+        case "component":
+          // Handle direct component clicks (videoText, imageText)
+          if (
+            component.props.navigation?.enabled &&
+            component.props.navigation.targetPageId
+          ) {
+            navigateToPage(component.props.navigation.targetPageId);
+          }
+          break;
+
+        default:
+          console.warn("Unknown click type:", type);
+      }
+    },
+    [components, navigateToPage]
+  );
+
+  // Enhanced component update functions
+  const updateImageNavigation = useCallback(
+    (componentId, imageIndex, targetPageId, enabled = true) => {
+      const component = components.find((comp) => comp.id === componentId);
+      if (!component) return;
+
+      const currentNav = component.props.imageNavigation || [];
+      const existingNavIndex = currentNav.findIndex(
+        (nav) => nav.imageIndex === imageIndex
+      );
+
+      let updatedNav;
+      if (existingNavIndex >= 0) {
+        updatedNav = [...currentNav];
+        updatedNav[existingNavIndex] = { imageIndex, targetPageId, enabled };
+      } else {
+        updatedNav = [...currentNav, { imageIndex, targetPageId, enabled }];
+      }
+
+      const updatedComponent = {
+        ...component,
+        props: {
+          ...component.props,
+          imageNavigation: updatedNav,
+        },
+      };
+
+      handleUpdateComponent(updatedComponent);
+    },
+    [components]
+  );
+
+  const updateItemNavigation = useCallback(
+    (componentId, itemIndex, targetPageId, enabled = true) => {
+      const component = components.find((comp) => comp.id === componentId);
+      if (!component) return;
+
+      const updatedItems = component.props.items.map((item, index) => {
+        if (index === itemIndex) {
+          return {
+            ...item,
+            navigation: {
+              enabled,
+              targetPageId,
+            },
+          };
+        }
+        return item;
+      });
+
+      const updatedComponent = {
+        ...component,
+        props: {
+          ...component.props,
+          items: updatedItems,
+        },
+      };
+
+      handleUpdateComponent(updatedComponent);
+    },
+    [components]
+  );
+
+  const updateProductNavigation = useCallback(
+    (componentId, productIndex, targetPageId, enabled = true) => {
+      const component = components.find((comp) => comp.id === componentId);
+      if (!component) return;
+
+      const currentNav = component.props.productNavigation || [];
+      const existingNavIndex = currentNav.findIndex(
+        (nav) => nav.productIndex === productIndex
+      );
+
+      let updatedNav;
+      if (existingNavIndex >= 0) {
+        updatedNav = [...currentNav];
+        updatedNav[existingNavIndex] = { productIndex, targetPageId, enabled };
+      } else {
+        updatedNav = [...currentNav, { productIndex, targetPageId, enabled }];
+      }
+
+      const updatedComponent = {
+        ...component,
+        props: {
+          ...component.props,
+          productNavigation: updatedNav,
+        },
+      };
+
+      handleUpdateComponent(updatedComponent);
+    },
+    [components]
+  );
+
+  const updateComponentNavigation = useCallback(
+    (componentId, targetPageId, enabled = true) => {
+      const component = components.find((comp) => comp.id === componentId);
+      if (!component) return;
+
+      const updatedComponent = {
+        ...component,
+        props: {
+          ...component.props,
+          navigation: {
+            enabled,
+            targetPageId,
+          },
+        },
+      };
+
+      handleUpdateComponent(updatedComponent);
+    },
+    [components]
+  );
+
   // Page management functions
   const handleAddPage = useCallback(() => {
     const newPageId = `page-${Date.now()}`;
@@ -232,9 +471,12 @@ export function JeebContextProvider({ children }) {
         }
         setSelectedComponent(null);
         setHasUnsavedChanges(true);
+
+        // Clear navigation history if current page is deleted
+        clearNavigationHistory();
       }
     },
-    [pages, currentPageId]
+    [pages, currentPageId, clearNavigationHistory]
   );
 
   const handleRenamePage = useCallback((pageId, newName) => {
@@ -246,10 +488,12 @@ export function JeebContextProvider({ children }) {
     setHasUnsavedChanges(true);
   }, []);
 
-  const handleSwitchPage = useCallback((pageId) => {
-    setCurrentPageId(pageId);
-    setSelectedComponent(null);
-  }, []);
+  const handleSwitchPage = useCallback(
+    (pageId) => {
+      navigateToPage(pageId, false); // Don't add to history for manual switches
+    },
+    [navigateToPage]
+  );
 
   const handleDuplicatePage = useCallback(
     (pageId) => {
@@ -286,6 +530,12 @@ export function JeebContextProvider({ children }) {
         )
       );
       setHasUnsavedChanges(true);
+      console.log(
+        "newComponent in updateCurrentPageComponents",
+        newComponents,
+        pages,
+        currentPageId
+      );
     },
     [currentPageId]
   );
@@ -313,6 +563,7 @@ export function JeebContextProvider({ children }) {
         props: getDefaultProps(componentType),
       };
       updateCurrentPageComponents([...components, newComponent]);
+      console.log("newComponent", newComponent, components);
     },
     [components, updateCurrentPageComponents]
   );
@@ -389,11 +640,20 @@ export function JeebContextProvider({ children }) {
       pages: pages,
       metadata: {
         created: new Date().toISOString(),
-        version: "2.0",
+        version: "2.1", // Updated version for navigation feature
         pagesCount: pages.length,
         totalComponents: pages.reduce(
           (total, page) => total + page.components.length,
           0
+        ),
+        hasNavigation: pages.some((page) =>
+          page.components.some(
+            (comp) =>
+              comp.props.navigation?.enabled ||
+              comp.props.imageNavigation?.some((nav) => nav.enabled) ||
+              comp.props.productNavigation?.some((nav) => nav.enabled) ||
+              comp.props.items?.some((item) => item.navigation?.enabled)
+          )
         ),
       },
     };
@@ -404,35 +664,39 @@ export function JeebContextProvider({ children }) {
     alert("Design saved successfully!");
   }, [designName, pages]);
 
-  const loadDesign = useCallback(async (designId) => {
-    try {
-      const response = await fetch(`/api/designs/${designId}`);
-      if (response.ok) {
-        const design = await response.json();
+  const loadDesign = useCallback(
+    async (designId) => {
+      try {
+        const response = await fetch(`/api/designs/${designId}`);
+        if (response.ok) {
+          const design = await response.json();
 
-        if (design.pages) {
-          setPages(design.pages);
-          setCurrentPageId(design.pages[0]?.id || "page-1");
-        } else if (design.components) {
-          setPages([
-            {
-              id: "page-1",
-              name: "Home",
-              components: design.components,
-              isActive: true,
-            },
-          ]);
-          setCurrentPageId("page-1");
+          if (design.pages) {
+            setPages(design.pages);
+            setCurrentPageId(design.pages[0]?.id || "page-1");
+          } else if (design.components) {
+            setPages([
+              {
+                id: "page-1",
+                name: "Home",
+                components: design.components,
+                isActive: true,
+              },
+            ]);
+            setCurrentPageId("page-1");
+          }
+
+          setDesignName(design.name);
+          setSelectedComponent(null);
+          setHasUnsavedChanges(false);
+          clearNavigationHistory();
         }
-
-        setDesignName(design.name);
-        setSelectedComponent(null);
-        setHasUnsavedChanges(false);
+      } catch (error) {
+        console.error("Error loading design:", error);
       }
-    } catch (error) {
-      console.error("Error loading design:", error);
-    }
-  }, []);
+    },
+    [clearNavigationHistory]
+  );
 
   const exportDesign = useCallback(() => {
     const designData = {
@@ -440,7 +704,7 @@ export function JeebContextProvider({ children }) {
       pages: pages,
       metadata: {
         created: new Date().toISOString(),
-        version: "2.0",
+        version: "2.1",
         pagesCount: pages.length,
         totalComponents: pages.reduce(
           (total, page) => total + page.components.length,
@@ -482,7 +746,8 @@ export function JeebContextProvider({ children }) {
     setSelectedComponent(null);
     setDesignName("Untitled Design");
     setHasUnsavedChanges(false);
-  }, [hasUnsavedChanges]);
+    clearNavigationHistory();
+  }, [hasUnsavedChanges, clearNavigationHistory]);
 
   // Canvas scale functions
   const increaseScale = useCallback(() => {
@@ -506,6 +771,8 @@ export function JeebContextProvider({ children }) {
     showLoadModal,
     isSaving,
     hasUnsavedChanges,
+    navigationHistory,
+    canGoBack,
     //navItems
     navItems,
 
@@ -532,6 +799,20 @@ export function JeebContextProvider({ children }) {
     handleRenamePage,
     handleSwitchPage,
     handleDuplicatePage,
+    //allowEditModeNavigation
+    allowEditModeNavigation,
+    setAllowEditModeNavigation,
+    // Navigation functions
+    navigateToPage,
+    goBack,
+    clearNavigationHistory,
+    handleComponentClick,
+
+    // Navigation update functions
+    updateImageNavigation,
+    updateItemNavigation,
+    updateProductNavigation,
+    updateComponentNavigation,
 
     // Component management
     updateCurrentPageComponents,

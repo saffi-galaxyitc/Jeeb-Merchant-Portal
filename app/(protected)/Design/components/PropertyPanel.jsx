@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pencil, Check } from "lucide-react";
 import { Input } from "@/app/components/ui/input";
 import { sampleProducts } from "@/lib/utils";
+import NavigationPropertyPanel from "./NavigationPropertyPanel";
 const PropertyPanel = ({
   selectedComponent,
   onUpdateComponent,
@@ -368,7 +369,7 @@ const PropertyPanel = ({
   };
 
   const renderImageTextProperties = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 bg-gray-50">
       {/* Edit / Save Toggle Button for imageText Props */}
       <button
         className="p-1 bg-blue-500 text-neutral-50 hover:bg-neutral-50 hover:text-blue-500 hover:border-blue-500 border-2 border-transparent rounded transition-colors"
@@ -491,7 +492,7 @@ const PropertyPanel = ({
     </div>
   );
   const renderBodyHalfProperties = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 bg-gray-50">
       {/* Edit / Save Toggle Button for BodyHalf Props */}
       <button
         className="p-1 bg-blue-500 text-neutral-50 hover:bg-neutral-50 hover:text-blue-500 hover:border-blue-500 border-2 border-transparent rounded transition-colors"
@@ -564,7 +565,7 @@ const PropertyPanel = ({
     </div>
   );
   const renderBrandsProperties = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 bg-gray-50">
       {/* Edit / Save Toggle Button for BodyHalf Props */}
       <button
         className="p-1 bg-blue-500 text-neutral-50 hover:bg-neutral-50 hover:text-blue-500 hover:border-blue-500 border-2 border-transparent rounded transition-colors"
@@ -664,7 +665,7 @@ const PropertyPanel = ({
     </div>
   );
   const renderSubCategBrandsProperties = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 bg-gray-50">
       {/* Edit / Save Toggle Button for BodyHalf Props */}
       <button
         className="p-1 bg-blue-500 text-neutral-50 hover:bg-neutral-50 hover:text-blue-500 hover:border-blue-500 border-2 border-transparent rounded transition-colors"
@@ -766,7 +767,7 @@ const PropertyPanel = ({
     </div>
   );
   const renderBannerProperties = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 bg-gray-50">
       {/* Edit / Save Toggle Button for Banner Props */}
       <button
         className="p-1 bg-blue-500 text-neutral-50 hover:bg-neutral-50 hover:text-blue-500 hover:border-blue-500 border-2 border-transparent rounded transition-colors"
@@ -887,7 +888,7 @@ const PropertyPanel = ({
     </div>
   );
   const renderBodyPlainProperties = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 bg-gray-50">
       {/* Edit / Save Toggle Button for Banner Props */}
       <button
         className="p-1 bg-blue-500 text-neutral-50 hover:bg-neutral-50 hover:text-blue-500 hover:border-blue-500 border-2 border-transparent rounded transition-colors"
@@ -1010,7 +1011,7 @@ const PropertyPanel = ({
     </div>
   );
   const renderBodyRoundProperties = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 bg-gray-50">
       {/* Edit / Save Toggle Button for Banner Props */}
       <button
         className="p-1 bg-blue-500 text-neutral-50 hover:bg-neutral-50 hover:text-blue-500 hover:border-blue-500 border-2 border-transparent rounded transition-colors"
@@ -1133,8 +1134,8 @@ const PropertyPanel = ({
     </div>
   );
   const renderImageRowProperties = () => (
-    <div className="bg-white border-l border-gray-200 w-80 h-full overflow-y-auto p-4">
-      <div className="space-y-4">
+    <div className="space-y-4 bg-gray-50 border-l border-gray-200 w-80 h-full overflow-y-auto p-4">
+      <div className=" space-x-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Items ({selectedComponent.props.items.length})
@@ -1147,7 +1148,7 @@ const PropertyPanel = ({
           </button>
         </div>
 
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        <div className="space-y-2 space-x-4 mt-4 max-h-96 overflow-y-auto">
           {selectedComponent.props.items.map((item, index) => (
             <div key={index} className="border border-gray-200 rounded p-3">
               {imageRowEditIndex === index ? (
@@ -1247,8 +1248,8 @@ const PropertyPanel = ({
     </div>
   );
   const renderSubHeaderGridProperties = () => (
-    <div className="bg-white border-l border-gray-200 w-80 h-full overflow-y-auto p-4">
-      <div className="space-y-4">
+    <div className="space-y-4 bg-gray-50 border-l border-gray-200 w-80 h-full overflow-y-auto p-4">
+      <div className="space-x-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Items ({selectedComponent.props.items.length})
@@ -1261,7 +1262,7 @@ const PropertyPanel = ({
           </button>
         </div>
 
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        <div className="space-y-2 space-x-4 mt-4 max-h-96 overflow-y-auto">
           {selectedComponent.props.items.map((item, index) => (
             <div key={index} className="border border-gray-200 rounded p-3">
               {subHeaderGridEditIndex === index ? (
@@ -1364,8 +1365,8 @@ const PropertyPanel = ({
     </div>
   );
   const renderSubBodyGridProperties = () => (
-    <div className="bg-white border-l border-gray-200 w-80 h-full overflow-y-auto p-4">
-      <div className="space-y-4">
+    <div className="space-y-4 bg-gray-50 border-l border-gray-200 w-80 h-full overflow-y-auto p-4">
+      <div className="space-x-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Items ({selectedComponent.props.items.length})
@@ -1378,7 +1379,7 @@ const PropertyPanel = ({
           </button>
         </div>
 
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        <div className="space-y-2 space-x-4 mt-4 max-h-96 overflow-y-auto">
           {selectedComponent.props.items.map((item, index) => (
             <div key={index} className="border border-gray-200 rounded p-3">
               {subBodyGridEditIndex === index ? (
@@ -1478,7 +1479,7 @@ const PropertyPanel = ({
     </div>
   );
   const renderVideoTextProperties = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 bg-gray-50">
       {/* Edit / Save Toggle Button */}
       <button
         className="p-1 bg-blue-500 text-neutral-50 hover:bg-neutral-50 hover:text-blue-500 hover:border-blue-500 border-2 border-transparent rounded transition-colors"
@@ -1541,8 +1542,8 @@ const PropertyPanel = ({
   );
   const renderProductsGridProperties = () => {
     return (
-      <div className="bg-white border-l border-gray-200 w-80 h-full overflow-y-auto p-4">
-        <div className="space-y-4">
+      <div className="space-y-4 p-4 bg-gray-50 border-l border-gray-200 w-80 h-full overflow-y-auto p-4">
+        <div className="space-x-4">
           {/* Grid Title Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1589,7 +1590,7 @@ const PropertyPanel = ({
           </div>
 
           {/* Current Products List */}
-          <div>
+          <div className="my-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Current Products (
               {(selectedComponent.props.products || []).length})
@@ -1669,8 +1670,8 @@ const PropertyPanel = ({
           </div>
 
           {/* Quick Actions */}
-          <div className="border-t pt-4">
-            <div className="space-y-2">
+          <div className="border-t py-4">
+            <div className="space-y-2 space-x-1 pr-4">
               <button
                 onClick={() => {
                   // Add all sample products
@@ -1683,17 +1684,17 @@ const PropertyPanel = ({
                   const allProducts = [...existingProducts, ...newProducts];
                   saveStateToComponent({ products: allProducts }, ["products"]);
                 }}
-                className="w-full bg-green-500 text-white px-3 py-2 rounded text-sm hover:bg-green-600"
+                className="w-full bg-blue-500 text-white px-3 py-2 rounded text-sm hover:bg-blue-600"
               >
-                Add All Products
+                Add All
               </button>
               <button
                 onClick={() => {
                   saveStateToComponent({ products: [] }, ["products"]);
                 }}
-                className="w-full bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600"
+                className="w-full text-blue-500 bg-white px-3 py-2 rounded text-sm border-2 border-blue-500"
               >
-                Clear All Products
+                Clear All
               </button>
             </div>
           </div>
@@ -1746,9 +1747,11 @@ const PropertyPanel = ({
         return renderUnknownComponent();
     }
   };
-
+  const renderNavigationProperties = () => {
+    return <NavigationPropertyPanel selectedComponent={selectedComponent} />;
+  };
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mx-4 mt-4 p-4 bg-gray-50 border-l border-gray-200">
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <h3 className="font-medium text-blue-800 capitalize">
           {selectedComponent.type}
@@ -1756,8 +1759,15 @@ const PropertyPanel = ({
         <p className="text-xs text-blue-600 mt-1">ID: {selectedComponent.id}</p>
       </div>
 
+      <div>{renderNavigationProperties()}</div>
       <div>
-        <h4 className="font-medium mb-3">Properties</h4>
+        <h3 className="text-md font-semibold text-gray-800 mb-2 px-4">
+          Content Settings
+        </h3>
+        <p className="text-sm text-gray-600 px-4">
+          Configure content for <strong>{selectedComponent.type}</strong>{" "}
+          component
+        </p>
         {renderComponentProperties()}
       </div>
     </div>

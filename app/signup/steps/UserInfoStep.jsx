@@ -17,10 +17,12 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { Button } from "@/app/components/ui/button";
 import { toast } from "sonner";
+import { email_check, verify_otp, verify_send } from "@/DAL/signup";
 
 const UserInfoStep = ({ onNext }) => {
   const [open, setOpen] = useState(false);
   const [otp, setOtp] = useState("");
+  const [userId, setUserId] = useState(null);
   const [maskedEmail, setMaskedEmail] = useState("");
   const {
     values,
@@ -65,53 +67,53 @@ const UserInfoStep = ({ onNext }) => {
     const payload = {
       name: values.name,
       email: values.email,
-      phone: values.phone,
+      mobile: values.phone,
     };
     console.log("payload", payload);
-    // try {
-    //   // Send API request to trigger sending OTP to user via email
-    //   await fetch("/api/send-verification", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({
-    //       first_name: values.first_name,
-    //       last_name: values.last_name,
-    //       email: values.email,
-    //       phone: values.phone,
-    //     }),
-    //   });
+    try {
+      const response = await verify_send({ payload });
+      console.log("handle verify resp:", response);
+      const result = response?.data?.result;
+      if (result?.code !== 200) return;
 
-    // Show OTP modal to user
-    setOpen(true);
-    // } catch (err) {
-    //   console.error("Failed to send OTP:", err);
-    // }
+      const userId = result?.result?.user_id;
+      if (!userId) {
+        console.error("User ID not found in response:", result);
+        return;
+      }
+
+      setUserId(userId);
+      setOpen(true);
+    } catch (err) {
+      console.error("Send verification code failed:", err);
+    }
   };
 
   const handleOTPSubmit = async (values, actions) => {
-    // try {
-    //   const res = await fetch("/api/verify-otp", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({ otp }),
-    //   });
+    try {
+      const payload = { user_id: userId, otp };
+      const response = await verify_otp({ payload });
+      console.log("response of verify otp", response);
 
-    //   const data = await res.json();
-    //   if (data.success) {
-    setOpen(false);
-    onNext(values, actions);
-    //   } else {
-    toast("Unable to verify your email!", {
-      description: "Invalid OTP. Please check your email and try again.",
-      // action: {
-      //   label: "Undo",
-      //   onClick: () => console.log("Undo"),
-      // },
-    });
-    //   }
-    // } catch (err) {
-    //   console.error("OTP verification failed:", err);
-    // }
+      const result = response?.data?.result;
+
+      if (result?.code === 200) {
+        console.log("first");
+        setOpen(false);
+        onNext(values, actions); // move to next step
+      } else {
+        toast.error("Unable to verify your email!", {
+          description:
+            result?.message ||
+            "Invalid OTP. Please check your email and try again.",
+        });
+      }
+    } catch (err) {
+      console.error("OTP verification failed:", err);
+      toast.error("Something went wrong!", {
+        description: "Please try again later.",
+      });
+    }
   };
 
   const handlePaste = async (e) => {
@@ -119,6 +121,21 @@ const UserInfoStep = ({ onNext }) => {
     if (/^\d{6}$/.test(pasted)) {
       setOtp(pasted);
       e.preventDefault(); // Prevent default paste to avoid double input
+    }
+  };
+
+  const handleVerifyEmail = async (e) => {
+    try {
+      const email = e?.target?.value || "";
+      if (!email) return;
+      const response = await email_check({ payload: { email } });
+      const result = response?.data?.result;
+      if (result?.result?.exists) {
+        // If email exists, set Formik field error
+        setFieldError("email", "Email already exists. Please use another.");
+      }
+    } catch (err) {
+      console.error("Email verification failed:", err);
     }
   };
 
@@ -145,6 +162,7 @@ const UserInfoStep = ({ onNext }) => {
           type="email"
           placeholder="Email"
           className="h-56 w-full my-2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+          onBlur={handleVerifyEmail}
         />
         <ErrorMessage
           name="email"
@@ -205,14 +223,14 @@ const UserInfoStep = ({ onNext }) => {
           </DialogHeader>
           <div className="w-full flex flex-col gap-4 items-center">
             <InputOTP
-              maxLength={5}
+              maxLength={6}
               value={otp}
               onChange={setOtp}
               onPaste={handlePaste}
               className="flex justify-center"
             >
               <InputOTPGroup className="gap-4">
-                {[...Array(5)].map((_, idx) => (
+                {[...Array(6)].map((_, idx) => (
                   <InputOTPSlot
                     key={idx}
                     index={idx}

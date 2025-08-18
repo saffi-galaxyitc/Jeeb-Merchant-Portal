@@ -28,8 +28,14 @@ export default function PageSections({
   handleAddItem,
   handleRemoveItem,
   handleRemoveSection,
+  selectedComponent,
+  onSelectComponent,
   items,
 }) {
+  const handleComponentClick = (component, event) => {
+    event.stopPropagation();
+    onSelectComponent(component);
+  };
   return (
     <div className="space-y-1 max-h-64 h-64 overflow-y-auto border-b border-gray-200">
       <div className="flex my-4 w-full items-start">
@@ -38,10 +44,21 @@ export default function PageSections({
       {pages
         .find((page) => page.id === currentPageId)
         ?.components.map((component) => (
-          <div key={component.id} className="mb-4">
+          <div key={component.id} className="mb-4 px-1">
             <Collapsible>
-              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md px-4 py-2 text-sm font-medium bg-gray-100 hover:border-gray-100 hover:border-1">
-                <span>{component.type || component.props.title}</span>
+              <CollapsibleTrigger
+                className={`flex w-full items-center justify-between rounded-md px-4 py-2 text-sm font-medium bg-gray-100 hover:border-gray-100 hover:border-1 ${
+                  selectedComponent?.id === component.id
+                    ? "ring-2 ring-blue-500"
+                    : ""
+                }`}
+              >
+                <span
+                  className="cursor-pointer"
+                  onClick={(e) => handleComponentClick(component, e)}
+                >
+                  {component.type || component.props.title}
+                </span>
                 <div className="flex items-center space-x-2">
                   {/* Dialog for adding item */}
                   <Dialog open={open} onOpenChange={setOpen}>
@@ -81,19 +98,13 @@ export default function PageSections({
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
-                  {/* <button
-                    type="button"
-                    onClick={() => handleRemoveSection(component.id)}
-                    className="ml-auto text-gray-400 hover:text-red-500"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button> */}
+
                   <div
                     role="button"
                     tabIndex={0}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleRemoveSection(component.id);
+                      handleRemoveSection(component.id, e);
                     }}
                     className="ml-auto text-gray-400 hover:text-red-500 cursor-pointer"
                   >

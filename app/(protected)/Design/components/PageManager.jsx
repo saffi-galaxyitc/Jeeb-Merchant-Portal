@@ -16,6 +16,10 @@ const PageManager = ({
   onRenamePage,
   onSwitchPage,
   onDuplicatePage,
+  selectedComponent,
+  onSelectComponent,
+  onUpdateComponent,
+  onDeleteComponent,
 }) => {
   const [editingPageId, setEditingPageId] = useState(null);
   const [editingName, setEditingName] = useState("");
@@ -33,8 +37,10 @@ const PageManager = ({
     }
   };
 
-  const handleRemoveSection = () => {
+  const handleRemoveSection = (id, e) => {
     console.log("remove section");
+    e.stopPropagation();
+    onDeleteComponent(id);
   };
   const handleRemoveItem = (index) => {
     setItems((prev) => prev.filter((_, i) => i !== index));
@@ -268,6 +274,8 @@ const PageManager = ({
         handleAddItem={handleAddItem}
         handleRemoveItem={handleRemoveItem}
         handleRemoveSection={handleRemoveSection}
+        selectedComponent={selectedComponent}
+        onSelectComponent={onSelectComponent}
         items={items}
       />
 

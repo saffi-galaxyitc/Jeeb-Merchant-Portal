@@ -8,6 +8,8 @@ import AppIntentStep from "./steps/AppIntentStep";
 import AppStylingStep from "./steps/AppStylingStep";
 import FinishStep from "./steps/FinishStep";
 import Stepper from "@/app/components/Stepper";
+import { signup } from "@/DAL/signup";
+import { toast } from "sonner";
 
 const initialValues = {
   // First step
@@ -20,10 +22,7 @@ const initialValues = {
   domain: "",
   // Third step
   logo: "",
-  theme_palette: {
-    primary: [],
-    secondary: [],
-  },
+  theme_palette: "",
 };
 
 const getValidationSchema = (step) => {
@@ -52,16 +51,7 @@ const getValidationSchema = (step) => {
     case 2:
       return Yup.object({
         logo: Yup.string().required("Logo is required"),
-        theme_palette: Yup.object({
-          primary: Yup.array()
-            .of(Yup.number().min(0).max(255))
-            .length(3)
-            .required("Primary color is required"),
-          secondary: Yup.array()
-            .of(Yup.number().min(0).max(255))
-            .length(3)
-            .required("Secondary color is required"),
-        }).required("Theme palette is required"),
+        theme_palette: Yup.string().required("Theme palette is required"),
       });
     default:
       return Yup.object(); // No validation for final step
@@ -90,8 +80,31 @@ const SignupSteps = () => {
     if (step > 0) setStep(step - 1);
   };
 
-  const handleSubmit = (values) => {
+  const handleSubmit = async (values) => {
     console.log("Form submitted:", values);
+    const { app_name, domain, intent, logo, theme_palette } = values;
+    const missingFields = [];
+    if (!app_name) missingFields.push("App Name");
+    if (!domain) missingFields.push("Domain");
+    if (!intent) missingFields.push("Intent");
+    if (!logo) missingFields.push("Logo");
+    if (!theme_palette) missingFields.push("Theme Palette");
+
+    if (missingFields.length > 0) {
+      toast.error(`Missing required field(s): ${missingFields.join(", ")}`);
+      return;
+    }
+    const payload = {
+      logo: logo,
+      app_color: theme_palette,
+      name: app_name,
+      store_type_id: intent,
+      sub_domain: domain,
+    };
+    const response = await signup({ payload });
+    console.log("signup response", response);
+    const result = response?.data?.result;
+    if (!result.code === 200) return;
     setStep(step + 1); // Go to Finish step
   };
 

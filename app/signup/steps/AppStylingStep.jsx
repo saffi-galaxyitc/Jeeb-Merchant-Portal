@@ -16,27 +16,22 @@ const AppStylingStep = ({ onBack }) => {
     setErrors,
   } = useFormikContext();
 
-  const primaryInputRef = useRef(null);
-  const secondaryInputRef = useRef(null);
+  const colorInputRef = useRef(null);
 
-  const rgbArrayToHex = ([r, g, b]) =>
-    "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+  // const rgbArrayToHex = ([r, g, b]) =>
+  //   "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
 
-  const hexToRgbArray = (hex) => {
-    const bigint = parseInt(hex.slice(1), 16);
-    return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-  };
-  const handleColorChange = (type, event) => {
-    const newColor = hexToRgbArray(event.target.value);
-    setFieldValue("theme_palette", {
-      ...values.theme_palette,
-      [type]: newColor,
-    });
-  };
+  // const hexToRgbArray = (hex) => {
+  //   const bigint = parseInt(hex.slice(1), 16);
+  //   return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+  // };
+  // const handleColorChange = (event) => {
+  //   setFieldValue("theme_palette", event.target.value);
+  // };
 
   const handleCustomSubmit = async () => {
     const errors = await validateForm();
-    // console.log("errors", errors, values);
+    console.log("errors", errors, values);
     if (Object.keys(errors).length > 0) {
       // console.log("errors", errors, Object.keys(errors).length);
       setErrors(errors);
@@ -64,97 +59,36 @@ const AppStylingStep = ({ onBack }) => {
 
       <ThemePalettePicker
         imageUrl={values.logo}
-        onSelectPalette={({ primary, secondary }) => {
-          setFieldValue("theme_palette", {
-            primary,
-            secondary,
-          });
+        onSelectPalette={(hexColor) => {
+          setFieldValue("theme_palette", hexColor);
         }}
       />
       <ErrorMessage
-        name="theme_palette.primary"
+        name="theme_palette"
         component="div"
         className="text-red-500 text-sm"
       />
-      <ErrorMessage
-        name="theme_palette.secondary"
-        component="div"
-        className="text-red-500 text-sm"
-      />
-      {/* {Array.isArray(values.theme_palette?.primary) &&
-        values.theme_palette.primary.length === 3 && (
-          <div className="flex items-center gap-2 mt-4">
-            <span className="text-sm">Primary:</span>
-            <div
-              className="w-6 h-6 rounded-full border"
-              style={{
-                backgroundColor: `rgb(${values.theme_palette.primary.join(
-                  ","
-                )})`,
-              }}
-            />
-          </div>
-        )}
 
-      {Array.isArray(values.theme_palette?.secondary) &&
-        values.theme_palette.secondary.length === 3 && (
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-sm">Secondary:</span>
-            <div
-              className="w-6 h-6 rounded-full border"
-              style={{
-                backgroundColor: `rgb(${values.theme_palette.secondary.join(
-                  ","
-                )})`,
-              }}
-            />
-          </div>
-        )} */}
-      {Array.isArray(values.theme_palette?.primary) &&
-        values.theme_palette.primary.length === 3 && (
-          <div className="flex items-center gap-2 mt-4">
-            <span className="text-sm">Primary:</span>
-            <div
-              onClick={() => primaryInputRef.current?.click()}
-              className="w-6 h-6 rounded-full border cursor-pointer"
-              style={{
-                backgroundColor: `rgb(${values.theme_palette.primary.join(
-                  ","
-                )})`,
-              }}
-            />
-            <input
-              ref={primaryInputRef}
-              type="color"
-              defaultValue={rgbArrayToHex(values.theme_palette.primary)}
-              onChange={(e) => handleColorChange("primary", e)}
-              className="hidden"
-            />
-          </div>
-        )}
-
-      {Array.isArray(values.theme_palette?.secondary) &&
-        values.theme_palette.secondary.length === 3 && (
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-sm">Secondary:</span>
-            <div
-              onClick={() => secondaryInputRef.current?.click()}
-              className="w-6 h-6 rounded-full border cursor-pointer"
-              style={{
-                backgroundColor: `rgb(${values.theme_palette.secondary.join(
-                  ","
-                )})`,
-              }}
-            />
-            <input
-              ref={secondaryInputRef}
-              type="color"
-              defaultValue={rgbArrayToHex(values.theme_palette.secondary)}
-              onChange={(e) => handleColorChange("secondary", e)}
-              className="hidden"
-            />
-          </div>
-        )}
+      {values.theme_palette && (
+        <div className="flex items-center gap-2 mt-4 outline-dashed rounded-lg p-4">
+          <strong className="text-sm text-slate-700">Selected Color:</strong>
+          <div
+            onClick={() => colorInputRef.current?.click()}
+            className="w-6 h-6 rounded-full border cursor-pointer"
+            style={{
+              backgroundColor: values.theme_palette,
+            }}
+          />
+          <span className="text-xs">{values.theme_palette}</span>
+          <input
+            ref={colorInputRef}
+            type="color"
+            value={values.theme_palette}
+            onChange={(e) => setFieldValue("theme_palette", e.target.value)}
+            className="hidden"
+          />
+        </div>
+      )}
 
       <div className="flex justify-between mt-4 gap-4">
         <div className="w-1/2">

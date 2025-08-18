@@ -46,7 +46,7 @@ export default function Navbar() {
   // Find the current page label
   const currentPage = navItems.find((item) => pathname.startsWith(item.href));
   return (
-    <header className="w-full h-32 bg-white border-b px-4 py-2 flex items-center justify-between">
+    <header className="w-full h-18 bg-white border-b px-4 py-2 flex items-center justify-between">
       {/* Left side: optional title or icon */}
       <div className="ml-auto">
         <div className="flex items-center space-x-4">
@@ -60,7 +60,7 @@ export default function Navbar() {
       </div>
 
       {/* Right side: user-related icons */}
-      <div className="flex items-center gap-4 ml-auto">
+      <div className="flex items-center sm:gap-4 gap-1 ml-auto">
         <Button
           size="sm"
           variant="textOnly"
@@ -69,7 +69,7 @@ export default function Navbar() {
           <Play></Play>
         </Button>
         <Button size="sm" onClick={openPaymentModal}>
-          Publish App
+          Publish
         </Button>
       </div>
     </header>

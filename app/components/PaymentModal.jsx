@@ -7,10 +7,12 @@ import { X, CreditCard } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
 import { useJeebContext } from "../context/JeebContext";
 import { useState } from "react";
+import { Checkbox } from "./ui/checkbox";
 
 export default function PaymentModal() {
   const { isPaymentModalOpen, closePaymentModal } = useJeebContext();
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
+  const [terms, setTerms] = useState(false);
   const [cardNumber, setCardNumber] = useState("");
   const [nameOnCard, setNameOnCard] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
@@ -71,12 +73,6 @@ export default function PaymentModal() {
                 All transactions are secured and encrypted
               </p>
             </div>
-            {/* <button
-              onClick={closePaymentModal}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="h-5 w-5 text-gray-500" />
-            </button> */}
           </div>
         </div>
 
@@ -225,6 +221,7 @@ export default function PaymentModal() {
           <Button
             onClick={handlePayment}
             disabled={
+              !terms ||
               isProcessing ||
               (paymentMethod === "credit-card" &&
                 (!cardNumber || !nameOnCard || !expiryDate || !cvv))
@@ -240,6 +237,20 @@ export default function PaymentModal() {
               "Pay | $200 per month"
             )}
           </Button>
+        </div>
+        <div className="mb-6 flex gap-4 justify-center items-center">
+          <Checkbox
+            className="border-gray-400 data-[state=checked]:bg-blue-700 data-[state=checked]:text-white"
+            checked={terms}
+            onCheckedChange={(checked) => setTerms(checked)}
+          />
+          <span className="text-xs text-gray-400">
+            I agree to the{" "}
+            <em className="underline text-blue-700 text-xs">
+              Terms and Conditions
+            </em>{" "}
+            and Privacy Policy
+          </span>
         </div>
       </DialogContent>
     </Dialog>
