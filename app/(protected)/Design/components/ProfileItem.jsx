@@ -15,7 +15,7 @@ import {
 } from "@/app/components/ui/dropdown-menu";
 import ProfileImage from "@/app/components/ProfileImage";
 
-export function ProfileItem() {
+export function ProfileItem({ handleLogout }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,7 +35,7 @@ export function ProfileItem() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
           Log out
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
         </DropdownMenuItem>

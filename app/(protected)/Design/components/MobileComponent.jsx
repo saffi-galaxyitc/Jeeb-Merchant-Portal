@@ -106,11 +106,39 @@ const MobileComponent = ({
   useEffect(() => {
     bannerAutoPlayRef.current = component.props.autoPlay;
     bannerIntervalRef.current = component.props.interval;
+    // If autoplay is turned off, clear timeout immediately
+    if (!component.props.autoPlay) {
+      if (bannerSliderRef.current) {
+        bannerSliderRef.current.slides && clearTimeout(timeoutId.current);
+      }
+    } else {
+      // If turned on, restart autoplay right away
+      if (bannerSliderRef.current) {
+        clearTimeout(timeoutId.current);
+        timeoutId.current = setTimeout(() => {
+          bannerSliderRef.current.next();
+        }, component.props.interval || 3000);
+      }
+    }
   }, [component.props.autoPlay, component.props.interval]);
 
   useEffect(() => {
     bodyPlainAutoPlayRef.current = component.props.autoPlay;
     bodyPlainIntervalRef.current = component.props.interval;
+    // If autoplay is turned off, clear timeout immediately
+    if (!component.props.autoPlay) {
+      if (bodyPlainSliderRef.current) {
+        bodyPlainSliderRef.current.slides && clearTimeout(timeoutId.current);
+      }
+    } else {
+      // If turned on, restart autoplay right away
+      if (bodyPlainSliderRef.current) {
+        clearTimeout(timeoutId.current);
+        timeoutId.current = setTimeout(() => {
+          bodyPlainSliderRef.current.next();
+        }, component.props.interval || 3000);
+      }
+    }
   }, [component.props.autoPlay, component.props.interval]);
 
   const [bannerSliderRef] = useKeenSlider(

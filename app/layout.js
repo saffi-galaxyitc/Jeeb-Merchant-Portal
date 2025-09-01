@@ -1,6 +1,9 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { AuthProvider } from "./mainContext/AuthContext";
+import { ToastContainer } from "react-toastify";
+import { ResetProvider } from "./mainContext/ResetContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -18,8 +21,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <Toaster />
-        {children}
+        <ResetProvider>
+          <AuthProvider>
+            <ToastContainer position="top-right" autoClose={3000} />
+            <Toaster />
+            {children}
+          </AuthProvider>
+        </ResetProvider>
       </body>
     </html>
   );

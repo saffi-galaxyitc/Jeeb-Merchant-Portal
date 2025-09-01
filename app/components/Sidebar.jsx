@@ -5,10 +5,12 @@ import { cn } from "@/lib/utils"; // ShadCN's utility for classnames
 import { usePathname } from "next/navigation";
 import { ProfileItem } from "@/app/(protected)/design/components/ProfileItem";
 import { useJeebContext } from "../context/JeebContext";
+import { useAuth } from "../mainContext/AuthContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { navItems } = useJeebContext();
+  const { handleLogout } = useAuth();
   return (
     <aside className="h-screen w-20 bg-white text-black flex flex-col items-center justify-center py-4 space-y-4 border-r border-gray-200">
       <div className="flex flex-col items-center justify-center mt-8">
@@ -28,7 +30,7 @@ export default function Sidebar() {
       </div>
 
       <div className="mt-auto">
-        <ProfileItem />
+        <ProfileItem handleLogout={handleLogout} />
       </div>
     </aside>
   );

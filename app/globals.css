@@ -131,3 +131,30 @@ body {
     @apply bg-background text-foreground;
   }
 }
+.tiptap {
+  @apply w-full h-full outline-none;
+
+  p {
+    @apply my-2 first:mt-0 last:mb-0 text-base leading-relaxed;
+  }
+
+  ul {
+    @apply list-disc pl-6 my-2;
+  }
+
+  ol {
+    @apply list-decimal pl-6 my-2;
+  }
+
+  li {
+    @apply my-1;
+  }
+
+  h1 {
+    @apply text-2xl font-bold mt-6 mb-3 first:mt-0 last:mb-0;
+  }
+
+  h2 {
+    @apply text-xl font-bold mt-4 mb-2 first:mt-0 last:mb-0;
+  }
+}

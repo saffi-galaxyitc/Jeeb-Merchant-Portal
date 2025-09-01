@@ -8,6 +8,8 @@ import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getResetPasswprdOTP } from "@/DAL/resetPasword";
+import { useReset } from "../mainContext/ResetContext";
 
 // Validation schema
 const validationSchema = Yup.object({
@@ -18,13 +20,27 @@ const validationSchema = Yup.object({
 
 const ResetPasswordForm = () => {
   const router = useRouter();
-  const handleSubmit = (values, { setSubmitting }) => {
+  const { setUserId, setUserEmail } = useReset();
+  const handleSubmit = async (values, { setSubmitting }) => {
     console.log("Form values:", values);
     // Handle form submission here
-    setTimeout(() => {
-      setSubmitting(false);
-      router.push("/verifyEmail");
-    }, 400);
+    const { email } = values;
+    const payload = {
+      email,
+    };
+    const response = await getResetPasswprdOTP({ payload });
+    console.log("result getResetPasswprdOTP", response);
+    const result = response?.data?.result;
+    if (result?.code === 200) {
+      const id = result?.result?.user_id;
+      console.log("first", id);
+      setUserId(id);
+      setUserEmail(email);
+      setTimeout(() => {
+        setSubmitting(false);
+        router.push("/verifyEmail");
+      }, 400);
+    }
   };
 
   return (
@@ -50,7 +66,7 @@ const ResetPasswordForm = () => {
                 onSubmit={handleSubmit}
               >
                 {({ errors, touched, isSubmitting, values, setFieldValue }) => (
-                  <div className="space-y-6">
+                  <Form className="space-y-6">
                     {/* Email Field */}
                     <div className="space-y-2">
                       <Field
@@ -66,10 +82,10 @@ const ResetPasswordForm = () => {
                     </div>
 
                     <Button
-                      type="button"
-                      onClick={() =>
-                        handleSubmit(values, { setSubmitting: () => {} })
-                      }
+                      type="submit"
+                      // onClick={() =>
+                      //   handleSubmit(values, { setSubmitting: () => {} })
+                      // }
                       disabled={isSubmitting}
                       className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
                     >
@@ -87,7 +103,7 @@ const ResetPasswordForm = () => {
                         </Link>
                       </span>
                     </div>
-                  </div>
+                  </Form>
                 )}
               </Formik>
             </CardContent>

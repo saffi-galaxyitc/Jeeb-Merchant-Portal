@@ -3,6 +3,7 @@ import { Pencil, Check } from "lucide-react";
 import { Input } from "@/app/components/ui/input";
 import { sampleProducts } from "@/lib/utils";
 import NavigationPropertyPanel from "./NavigationPropertyPanel";
+import UploadDropzone from "./UploadDropzone";
 const PropertyPanel = ({
   selectedComponent,
   onUpdateComponent,
@@ -12,7 +13,9 @@ const PropertyPanel = ({
   const [videoTextProps, setVideoTextProps] = useState({
     video_url: "",
     title: "",
+    title_color: "#000000",
     button_text: "",
+    button_color: "#ffffff",
   });
   const [editVideoText, setEditVideoText] = useState(false);
   //(2) Image Row State variables
@@ -25,7 +28,9 @@ const PropertyPanel = ({
   const [imageTextProps, setImageTextProps] = useState({
     image: "",
     title: "",
+    title_color: "#000000",
     button_text: "",
+    button_color: "#ffffff",
   });
   const [editImageText, setEditImageText] = useState(false);
   //(4) Banner State variables
@@ -59,6 +64,7 @@ const PropertyPanel = ({
     images: [],
     bg_img: "",
     title: "",
+    title_color: "#000000",
   });
   const [editBrands, setEditBrands] = useState(false);
   //(9) Sub Header Grid State variables
@@ -72,6 +78,7 @@ const PropertyPanel = ({
     images: [],
     bg_img: "",
     title: "",
+    title_color: "#000000",
   });
   const [editsubCategBrands, setEditSubCategBrands] = useState(false);
   //(11) Sub Body Grid State variables
@@ -378,7 +385,9 @@ const PropertyPanel = ({
             // Save all imageText props, including images
             saveStateToComponent(imageTextProps, [
               "title",
+              "title_color",
               "button_text",
+              "button_color",
               "image",
             ]);
             // Clean up temporary URLs after saving
@@ -387,7 +396,9 @@ const PropertyPanel = ({
             // Initialize imageTextProps with current component props
             setImageTextProps({
               title: selectedComponent.props.title || "",
+              title_color: selectedComponent.props.title_color || "#000000",
               button_text: selectedComponent.props.button_text || "",
+              button_color: selectedComponent.props.button_color || "#ffffff",
               image: selectedComponent.props.image || "",
             });
           }
@@ -450,44 +461,77 @@ const PropertyPanel = ({
       </div>
       <div>
         <label className="block text-sm font-medium mb-2">Title</label>
-        <input
-          type="text"
-          value={
-            editImageText
-              ? imageTextProps.title
-              : selectedComponent.props.title || ""
-          }
-          onChange={(e) => {
-            if (editImageText) onImageTextChange("title", e.target.value);
-          }}
-          readOnly={!editImageText}
-          className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            !editImageText
-              ? "bg-gray-100 cursor-not-allowed"
-              : "border-gray-300"
-          }`}
-        />
+        <div className="flex items-center space-x-2">
+          <input
+            type="text"
+            value={
+              editImageText
+                ? imageTextProps.title
+                : selectedComponent.props.title || ""
+            }
+            onChange={(e) => {
+              if (editImageText) onImageTextChange("title", e.target.value);
+            }}
+            readOnly={!editImageText}
+            className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              !editImageText
+                ? "bg-gray-100 cursor-not-allowed"
+                : "border-gray-300"
+            }`}
+          />
+          <input
+            type="color"
+            value={
+              editImageText
+                ? imageTextProps.title_color
+                : selectedComponent.props.title_color || "#000000"
+            }
+            onChange={(e) => {
+              if (editImageText)
+                onImageTextChange("title_color", e.target.value);
+            }}
+            disabled={!editImageText}
+            className="w-12 h-10 p-1 border rounded cursor-pointer"
+          />
+        </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium mb-2">Buton Text</label>
-        <input
-          type="text"
-          value={
-            editImageText
-              ? imageTextProps.button_text
-              : selectedComponent.props.button_text || ""
-          }
-          onChange={(e) => {
-            if (editImageText) onImageTextChange("button_text", e.target.value);
-          }}
-          readOnly={!editImageText}
-          className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            !editImageText
-              ? "bg-gray-100 cursor-not-allowed"
-              : "border-gray-300"
-          }`}
-        />
+        <div className="flex items-center space-x-2">
+          <input
+            type="text"
+            value={
+              editImageText
+                ? imageTextProps.button_text
+                : selectedComponent.props.button_text || ""
+            }
+            onChange={(e) => {
+              if (editImageText)
+                onImageTextChange("button_text", e.target.value);
+            }}
+            readOnly={!editImageText}
+            className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              !editImageText
+                ? "bg-gray-100 cursor-not-allowed"
+                : "border-gray-300"
+            }`}
+          />
+          <input
+            type="color"
+            value={
+              editImageText
+                ? imageTextProps.button_color
+                : selectedComponent.props.button_color || "#ffffff"
+            }
+            onChange={(e) => {
+              if (editImageText)
+                onImageTextChange("button_color", e.target.value);
+            }}
+            disabled={!editImageText}
+            className="w-12 h-10 p-1 border rounded cursor-pointer"
+          />
+        </div>
       </div>
     </div>
   );
@@ -571,8 +615,13 @@ const PropertyPanel = ({
         className="p-1 bg-blue-500 text-neutral-50 hover:bg-neutral-50 hover:text-blue-500 hover:border-blue-500 border-2 border-transparent rounded transition-colors"
         onClick={() => {
           if (editBrands) {
-            // Save all BodyHalf props, including images
-            saveStateToComponent(brandsProps, ["images", "bg_img", "title"]);
+            // Save all Brands props, including images
+            saveStateToComponent(brandsProps, [
+              "images",
+              "bg_img",
+              "title",
+              "title_color",
+            ]);
             // Clean up temporary URLs after saving
             brandsProps.images.forEach((url) => URL.revokeObjectURL(url));
           } else {
@@ -581,6 +630,7 @@ const PropertyPanel = ({
               images: selectedComponent.props.images || [],
               bg_img: selectedComponent.props.bg_img || "",
               title: selectedComponent.props.title || "",
+              title_color: selectedComponent.props.title_color || "#000000",
             });
           }
           setEditBrands((prev) => !prev);
@@ -636,31 +686,55 @@ const PropertyPanel = ({
             </div>
           ))}
         </div>
-        {["bg_img", "title"].map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium mb-2 capitalize">
-              {field.replace("_", " ")}
-            </label>
-            <input
-              type="text"
-              value={
-                editBrands
-                  ? brandsProps[field] || ""
-                  : selectedComponent.props[field] || ""
-              }
-              placeholder={`Enter ${field.replace("_", " ")}`}
-              onChange={(e) => {
-                if (editBrands) onBrandsChange(field, e.target.value);
-              }}
-              readOnly={!editBrands}
-              className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                !editBrands
-                  ? "bg-gray-100 cursor-not-allowed"
-                  : "border-gray-300"
-              }`}
-            />
-          </div>
-        ))}
+        {["bg_img", "title"].map((field) => {
+          const colorFieldMap = {
+            title: "title_color",
+          };
+          const colorField = colorFieldMap[field];
+          return (
+            <div key={field}>
+              <label className="block text-sm font-medium mb-2 capitalize">
+                {field.replace("_", " ")}
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={
+                    editBrands
+                      ? brandsProps[field] || ""
+                      : selectedComponent.props[field] || ""
+                  }
+                  placeholder={`Enter ${field.replace("_", " ")}`}
+                  onChange={(e) => {
+                    if (editBrands) onBrandsChange(field, e.target.value);
+                  }}
+                  readOnly={!editBrands}
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    !editBrands
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "border-gray-300"
+                  }`}
+                />
+                {colorField && (
+                  <input
+                    type="color"
+                    value={
+                      editBrands
+                        ? brandsProps[colorField] || "#000000"
+                        : selectedComponent.props[colorField] || "#000000"
+                    }
+                    onChange={(e) => {
+                      if (editBrands)
+                        onBrandsChange(colorField, e.target.value);
+                    }}
+                    disabled={!editBrands}
+                    className="w-12 h-10 p-1 border rounded cursor-pointer"
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -672,7 +746,11 @@ const PropertyPanel = ({
         onClick={() => {
           if (editsubCategBrands) {
             // Save all BodyHalf props, including images
-            saveStateToComponent(subCategBrandsProps, ["images", "title"]);
+            saveStateToComponent(subCategBrandsProps, [
+              "images",
+              "title",
+              "title_color",
+            ]);
             // Clean up temporary URLs after saving
             subCategBrandsProps.images.forEach((url) =>
               URL.revokeObjectURL(url)
@@ -682,6 +760,7 @@ const PropertyPanel = ({
             setSubCategBrandsProps({
               images: selectedComponent.props.images || [],
               title: selectedComponent.props.title || "",
+              title_color: selectedComponent.props.title_color || "#000000",
             });
           }
           setEditSubCategBrands((prev) => !prev);
@@ -737,32 +816,56 @@ const PropertyPanel = ({
             </div>
           ))}
         </div>
-        {["title"].map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium mb-2 capitalize">
-              {field.replace("_", " ")}
-            </label>
-            <input
-              type="text"
-              value={
-                editsubCategBrands
-                  ? subCategBrandsProps[field] || ""
-                  : selectedComponent.props[field] || ""
-              }
-              placeholder={`Enter ${field.replace("_", " ")}`}
-              onChange={(e) => {
-                if (editsubCategBrands)
-                  onSubCategBrandsChange(field, e.target.value);
-              }}
-              readOnly={!editsubCategBrands}
-              className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                !editsubCategBrands
-                  ? "bg-gray-100 cursor-not-allowed"
-                  : "border-gray-300"
-              }`}
-            />
-          </div>
-        ))}
+        {["title"].map((field) => {
+          const colorFieldMap = {
+            title: "title_color",
+          };
+          const colorField = colorFieldMap[field];
+          return (
+            <div key={field}>
+              <label className="block text-sm font-medium mb-2 capitalize">
+                {field.replace("_", " ")}
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={
+                    editsubCategBrands
+                      ? subCategBrandsProps[field] || ""
+                      : selectedComponent.props[field] || ""
+                  }
+                  placeholder={`Enter ${field.replace("_", " ")}`}
+                  onChange={(e) => {
+                    if (editsubCategBrands)
+                      onSubCategBrandsChange(field, e.target.value);
+                  }}
+                  readOnly={!editsubCategBrands}
+                  className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    !editsubCategBrands
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "border-gray-300"
+                  }`}
+                />
+                {colorField && (
+                  <input
+                    type="color"
+                    value={
+                      editsubCategBrands
+                        ? subCategBrandsProps[colorField] || "#000000"
+                        : selectedComponent.props[colorField] || "#000000"
+                    }
+                    onChange={(e) => {
+                      if (editsubCategBrands)
+                        onSubCategBrandsChange(colorField, e.target.value);
+                    }}
+                    disabled={!editsubCategBrands}
+                    className="w-12 h-10 p-1 border rounded cursor-pointer"
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -807,7 +910,12 @@ const PropertyPanel = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Images</label>
-        <input
+        <UploadDropzone
+          edit={editBanner}
+          handleImageUpload={handleImageUpload}
+          uploadCase={"banner"}
+        />
+        {/* <input
           type="file"
           accept="image/*"
           // multiple
@@ -818,8 +926,37 @@ const PropertyPanel = ({
               ? "border-gray-300"
               : "bg-gray-100 cursor-not-allowed border-gray-300"
           }`}
-        />
-        <div className="mt-2 space-y-2">
+        /> */}
+        <div className="flex items-center justify-center gap-2 py-4 w-full">
+          <span
+            className={`flex-grow border-t border-1 border-dashed ${
+              editBanner ? "border-gray-300" : "border-gray-200"
+            }`}
+          ></span>
+          <span
+            className={`font-bold ${
+              editBanner ? "text-gray-300" : "text-gray-200"
+            }`}
+          >
+            Or
+          </span>
+          <span
+            className={`flex-grow border-t border-1 border-dashed ${
+              editBanner ? "border-gray-300" : "border-gray-200"
+            }`}
+          ></span>
+        </div>
+        <div>
+          <input
+            type="text"
+            placeholder="Image URL"
+            readOnly={!editBanner}
+            className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              !editBanner ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
+            }`}
+          />
+        </div>
+        <div className="mt-4 space-y-2">
           {(editBanner
             ? bannerProps.images
             : selectedComponent.props.images || []
@@ -1487,14 +1624,17 @@ const PropertyPanel = ({
           if (editVideoText) {
             saveStateToComponent(videoTextProps, [
               "video_url",
-              "title",
+              "title_color",
               "button_text",
+              "button_color",
             ]);
           } else {
             setVideoTextProps({
-              video_url: selectedComponent.props["video_url"] || "",
-              title: selectedComponent.props["title"] || "",
-              button_text: selectedComponent.props["button_text"] || "",
+              video_url: selectedComponent.props.video_url || "",
+              title: selectedComponent.props.title || "",
+              title_color: selectedComponent.props.title_color || "#000000",
+              button_text: selectedComponent.props.button_text || "",
+              button_color: selectedComponent.props.button_color || "#ffffff",
             });
           }
           setEditVideoText((prev) => !prev);
@@ -1513,31 +1653,56 @@ const PropertyPanel = ({
         )}
       </button>
 
-      {["video_url", "title", "button_text"].map((field) => (
-        <div key={field}>
-          <label className="block text-sm font-medium mb-2 capitalize">
-            {field.replace("_", " ")}
-          </label>
-          <input
-            type="text"
-            value={
-              editVideoText
-                ? videoTextProps[field] || ""
-                : selectedComponent.props[field] || ""
-            }
-            placeholder={`Enter ${field.replace("_", " ")}`}
-            onChange={(e) => {
-              if (editVideoText) onVideoTextChange(field, e.target.value);
-            }}
-            readOnly={!editVideoText}
-            className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              !editVideoText
-                ? "bg-gray-100 cursor-not-allowed"
-                : "border-gray-300"
-            }`}
-          />
-        </div>
-      ))}
+      {["video_url", "title", "button_text"].map((field) => {
+        const colorFieldMap = {
+          title: "title_color",
+          button_text: "button_color",
+        };
+        const colorField = colorFieldMap[field];
+        return (
+          <div key={field}>
+            <label className="block text-sm font-medium mb-2 capitalize">
+              {field.replace("_", " ")}
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={
+                  editVideoText
+                    ? videoTextProps[field] || ""
+                    : selectedComponent.props[field] || ""
+                }
+                placeholder={`Enter ${field.replace("_", " ")}`}
+                onChange={(e) => {
+                  if (editVideoText) onVideoTextChange(field, e.target.value);
+                }}
+                readOnly={!editVideoText}
+                className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  !editVideoText
+                    ? "bg-gray-100 cursor-not-allowed"
+                    : "border-gray-300"
+                }`}
+              />
+              {colorField && (
+                <input
+                  type="color"
+                  value={
+                    editVideoText
+                      ? videoTextProps[colorField] || "#000000"
+                      : selectedComponent.props[colorField] || "#000000"
+                  }
+                  onChange={(e) => {
+                    if (editVideoText)
+                      onVideoTextChange(colorField, e.target.value);
+                  }}
+                  disabled={!editVideoText}
+                  className="w-12 h-10 p-1 border rounded cursor-pointer"
+                />
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
   const renderProductsGridProperties = () => {

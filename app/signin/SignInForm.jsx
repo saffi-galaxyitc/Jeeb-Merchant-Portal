@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { Card, CardContent } from "@/app/components/ui/card";
@@ -8,6 +8,11 @@ import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import Link from "next/link";
+import { authRequest, getToken, webLoginApi } from "@/DAL/signin";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import { setCookie } from "cookies-next";
+import { useAuth } from "../mainContext/AuthContext";
 
 // Validation schema
 const validationSchema = Yup.object({
@@ -18,14 +23,94 @@ const validationSchema = Yup.object({
     .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
 });
-
 const SignInForm = () => {
-  const handleSubmit = (values, { setSubmitting }) => {
+  const [csrfToken, setCsrfToken] = useState(null);
+  const { setSessionInfo, handleAuthentication } = useAuth();
+  const router = useRouter();
+
+  const callCSRFApi = async () => {
+    try {
+      const result = await getToken();
+      if (result.success) {
+        setCsrfToken(result.token);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+  };
+  // const handleInputChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData({ ...formData, [name]: value });
+  // };
+  useEffect(() => {
+    callCSRFApi();
+  }, []);
+  const handleSubmit = async (values, { setSubmitting }) => {
     console.log("Form values:", values);
-    // Handle form submission here
-    setTimeout(() => {
+    // handleAuthentication(true);
+    // setCookie("authenticated", "true", {
+    //   maxAge: 60 * 60 * 24 * 7, // 7 days
+    //   httpOnly: false,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "lax",
+    // });
+
+    // // Redirect to a protected route (or wherever you want)
+    // router.push("/design");
+    try {
+      // if (Object.keys(errors).length > 0) {
+      //   Object.values(errors).forEach((errMsg) => {
+      //     toast.error(errMsg, { position: "top-right" });
+      //   });
+      //   setSubmitting(false);
+      //   return;
+      // }
+      const { email, password } = values;
+      await webLoginApi({ login: email, password, csrfToken });
+      const result = await authRequest(email, password);
+      console.log("authentication result", result);
+      if (result.success) {
+        // console.log("authentication result", result);
+        setSessionInfo({
+          company_id: result.company_id,
+          user_id: result.user_id,
+          context: result.context,
+          name: result.name,
+          username: result.username,
+          user_companies: result.user_companies,
+        });
+        handleAuthentication(true);
+        localStorage.setItem("authenticated", JSON.stringify(true));
+        // Store in both localStorage and cookies
+        setCookie("authenticated", "true", {
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          httpOnly: false,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        });
+
+        // Redirect to a protected route (or wherever you want)
+        router.push("/design"); // or "/products" or "/settings"
+      } else {
+        localStorage.setItem("authenticated", JSON.stringify(false));
+        setCookie("authenticated", "false");
+        toast.error("Wrong emaill or password.", {
+          position: "top-right",
+        });
+      }
+      // Handle form submission here
+      setTimeout(() => {
+        setSubmitting(false);
+      }, 400);
+      // ✅ continue normal API call if no errors
+      console.log("Submitting to API...");
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.", {
+        position: "top-right",
+      });
+    } finally {
       setSubmitting(false);
-    }, 400);
+    }
   };
 
   return (
@@ -47,8 +132,15 @@ const SignInForm = () => {
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
               >
-                {({ errors, touched, isSubmitting, values, setFieldValue }) => (
-                  <div className="space-y-6">
+                {({
+                  errors,
+                  touched,
+                  isSubmitting,
+                  setSubmitting,
+                  values,
+                  setFieldValue,
+                }) => (
+                  <Form className="space-y-6">
                     {/* Email Field */}
                     <div className="space-y-2">
                       <Field
@@ -107,10 +199,12 @@ const SignInForm = () => {
 
                     {/* Login Button */}
                     <Button
-                      type="button"
-                      onClick={() =>
-                        handleSubmit(values, { setSubmitting: () => {} })
-                      }
+                      type="submit"
+                      // onClick={() =>
+                      //   handleSubmit(values, errors, {
+                      //     setSubmitting: () => {},
+                      //   })
+                      // }
                       disabled={isSubmitting}
                       className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
                     >
@@ -129,7 +223,7 @@ const SignInForm = () => {
                         </Link>
                       </span>
                     </div>
-                  </div>
+                  </Form>
                 )}
               </Formik>
             </CardContent>

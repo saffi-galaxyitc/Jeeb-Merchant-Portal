@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { Card, CardContent } from "@/app/components/ui/card";
@@ -9,6 +9,10 @@ import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { useReset } from "../mainContext/ResetContext";
+import { getToken } from "@/DAL/signin";
+import { resetPassword } from "@/DAL/resetPasword";
+import { toast } from "react-toastify";
 
 // Validation schema for new password
 const validationSchema = Yup.object({
@@ -24,18 +28,67 @@ const NewPasswordForm = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // const [csrfToken, setCsrfToken] = useState(null);
+  const { resetToken, userEmail, removeUserEmail } = useReset();
 
-  const handleSubmit = (values, { setSubmitting, setErrors }) => {
-    console.log("New password values:", values);
+  const handleSubmit = async (values, { setSubmitting, setErrors }) => {
+    try {
+      let csrfToken = null;
+      const result = await getToken();
+      if (result.success) {
+        csrfToken = result.token;
+      }
 
-    // Simulate API call
-    setTimeout(() => {
-      // Handle password reset logic here
-      console.log("Password reset successful");
-      router.push("/signin"); // Redirect to login after successful password reset
+      const { password, confirmPassword } = values;
+
+      // Require all fields
+      if (!csrfToken || !resetToken || !userEmail) {
+        toast.error("Missing required fields");
+        setSubmitting(false);
+        return;
+      }
+      console.log("reset password payload", {
+        csrf_token: csrfToken,
+        login: userEmail,
+        password,
+        confirm_password: confirmPassword,
+        token: resetToken,
+      });
+      await resetPassword({
+        csrf_token: csrfToken,
+        login: userEmail,
+        password,
+        confirm_password: confirmPassword,
+        token: resetToken,
+      });
+
+      // if (response.success) {
+      toast.success("Password reset successful");
+      removeUserEmail(); // optional: cleanup storage
+      router.push("/signin");
+      // } else {
+      //   toast.error(response.message || "Password reset failed");
+      // }
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
       setSubmitting(false);
-    }, 400);
+    }
   };
+  const callCSRFApi = async () => {
+    try {
+      const result = await getToken();
+      if (result.success) {
+        setCsrfToken(result.token);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+  };
+  // useEffect(() => {
+  //   callCSRFApi();
+  // }, []);
 
   return (
     <div className="min-h-screen flex w-full justify-center">

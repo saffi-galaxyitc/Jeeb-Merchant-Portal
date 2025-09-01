@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { Card, CardContent } from "@/app/components/ui/card";
@@ -12,31 +12,68 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/app/components/ui/input-otp";
+import {
+  getResetPasswprdOTP,
+  verifyResetPasswprdOTP,
+} from "@/DAL/resetPasword";
+import { useReset } from "../mainContext/ResetContext";
+import Countdown from "../components/Countdown";
 
 // Validation schema for OTP
 const validationSchema = Yup.object({
   otp: Yup.string()
-    .matches(/^\d{5}$/, "OTP must be exactly 5 digits")
+    .matches(/^\d{6}$/, "OTP must be exactly 5 digits")
     .required("OTP is required"),
 });
 
 const VerifyEmailForm = () => {
   const router = useRouter();
+  const { userId, setUserId, userEmail, setResetToken } = useReset();
+  const [resendActive, setResendActive] = useState(false);
 
-  const handleSubmit = (values, { setSubmitting, setErrors }) => {
+  const handleResend = async () => {
+    console.log("Resending code...");
+    setResendActive(true);
+    const payload = {
+      email: userEmail,
+    };
+    const response = await getResetPasswprdOTP({ payload });
+    console.log("result resend getResetPasswprdOTP", response);
+    const result = response?.data?.result;
+    if (result?.code === 200) {
+      const id = result?.result?.user_id;
+      setUserId(id);
+      setTimeout(() => {
+        // setSubmitting(false);
+        router.push("/verifyEmail");
+      }, 400);
+    }
+  };
+  const handleSubmit = async (values, { setSubmitting, setErrors }) => {
     console.log("OTP values:", values);
-
-    // Simulate API call
-    setTimeout(() => {
-      // You can add validation here
-      if (values.otp === "12345") {
-        // Example validation
-        router.push("/newPassword");
-      } else {
-        setErrors({ otp: "Invalid OTP code" });
-      }
-      setSubmitting(false);
-    }, 400);
+    const { otp } = values;
+    const payload = {
+      otp,
+      user_id: userId,
+    };
+    console.log("payload for verify otp in password reset", payload);
+    const response = await verifyResetPasswprdOTP({ payload });
+    const result = response?.data?.result;
+    if (result?.code === 200) {
+      console.log("result verify rest otp", result);
+      setResetToken(result?.result?.token);
+      // Simulate API call
+      setTimeout(() => {
+        // You can add validation here
+        if (result?.code === 200) {
+          router.push("/newPassword");
+        }
+        // else {
+        //   setErrors({ otp: "Invalid OTP code" });
+        // }
+        setSubmitting(false);
+      }, 400);
+    }
   };
 
   const handlePaste = (e, setFieldValue) => {
@@ -77,14 +114,14 @@ const VerifyEmailForm = () => {
                         {({ field }) => (
                           <InputOTP
                             {...field}
-                            maxLength={5}
+                            maxLength={6}
                             value={values.otp}
                             onChange={(value) => setFieldValue("otp", value)}
                             onPaste={(e) => handlePaste(e, setFieldValue)}
                             className="flex justify-center"
                           >
                             <InputOTPGroup className="gap-4">
-                              {[...Array(5)].map((_, idx) => (
+                              {[...Array(6)].map((_, idx) => (
                                 <InputOTPSlot
                                   key={idx}
                                   index={idx}
@@ -129,13 +166,23 @@ const VerifyEmailForm = () => {
                     <div className="text-center">
                       <button
                         type="button"
-                        className="text-sm text-blue-600 hover:text-blue-800 font-medium underline"
-                        onClick={() => {
-                          // Handle resend logic here
-                          console.log("Resending code...");
-                        }}
+                        onClick={handleResend}
+                        disabled={resendActive}
+                        className={`text-sm font-medium underline ${
+                          resendActive
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-blue-600 hover:text-blue-800"
+                        }`}
                       >
-                        Didn't receive the code? Resend
+                        {resendActive ? (
+                          <Countdown
+                            seconds={120}
+                            isActive={resendActive}
+                            onComplete={() => setResendActive(false)}
+                          />
+                        ) : (
+                          "Didn't receive the code? Resend"
+                        )}
                       </button>
                     </div>
                   </Form>

@@ -64,7 +64,9 @@ const getDefaultProps = (type) => {
       return {
         video_url: "",
         title: "Title Text",
+        title_color: "#000000",
         button_text: "Button Text",
+        button_color: "#ffffff",
         navigation: {
           enabled: false,
           targetPageId: null,
@@ -74,7 +76,9 @@ const getDefaultProps = (type) => {
       return {
         image: "",
         title: "Title Text",
+        title_color: "#000000",
         button_text: "Button Text",
+        button_color: "#ffffff",
         navigation: {
           enabled: false,
           targetPageId: null,
@@ -114,13 +118,15 @@ const getDefaultProps = (type) => {
       return {
         images: [],
         bg_image: "",
-        title: "",
+        title: "Title Text",
+        title_color: "#000000",
         imageNavigation: [], // Array of {imageIndex: number, targetPageId: string, enabled: boolean}
       };
     case "subCategBrands":
       return {
         images: [],
-        title: "",
+        title: "Title Text",
+        title_color: "#000000",
         imageNavigation: [], // Array of {imageIndex: number, targetPageId: string, enabled: boolean}
       };
     case "productsGrid":

@@ -564,14 +564,14 @@ export const renderBanner = ({
         <div
           ref={bannerSliderRef}
           className="keen-slider"
-          key={`${component.props.autoPlay}-${component.props.interval}`}
+          key={`${component.props.autoPlay}-${component.props.interval}-${component.props.images?.length}`}
         >
           {component.props.images.map((image, index) => (
             <div key={index} className="keen-slider__slide">
               <img
                 src={image}
                 alt={`Banner ${index + 1}`}
-                className="w-full h-full object-fit min-h-64"
+                className="w-full h-full object-contain min-h-64 max-h-64"
                 onClick={() =>
                   handleImageClick(
                     component.id,
@@ -645,12 +645,18 @@ export const renderVideoText = ({ component, handleClick }) => {
         </div>
       )}
       {component.props.title && (
-        <h3 className="text-2xl font-semibold text-black absolute top-[78px] start-[88px] transform -translate-x-1/2 z-10">
+        <h3
+          className="text-2xl font-semibold text-black absolute top-[78px] start-[88px] transform -translate-x-1/2 z-10"
+          style={{ color: component.props.title_color }}
+        >
           {component.props.title}
         </h3>
       )}
       {component.props.button_text && (
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors absolute top-[114px] right-1/2 transform -translate-x-1/2 z-10">
+        <button
+          className="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors absolute top-[114px] right-1/2 transform -translate-x-1/2 z-10"
+          style={{ color: component.props.button_color }}
+        >
           {component.props.button_text}
         </button>
       )}
@@ -687,12 +693,18 @@ export const renderImageText = ({ component, handleClick }) => {
         </div>
       )}
       {component.props.title && (
-        <h3 className="text-2xl font-semibold text-black absolute top-[48px]  start-[88px] transform -translate-x-1/2 z-10">
+        <h3
+          className="text-2xl font-semibold absolute top-[48px]  start-[88px] transform -translate-x-1/2 z-10"
+          style={{ color: component.props.title_color }}
+        >
           {component.props.title}
         </h3>
       )}
       {component.props.button_text && (
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors absolute top-[104px] right-1/2 transform -translate-x-1/2 z-10">
+        <button
+          className="px-4 py-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors absolute top-[104px] right-1/2 transform -translate-x-1/2 z-10"
+          style={{ color: component.props.button_color }}
+        >
           {component.props.button_text}
         </button>
       )}
@@ -746,14 +758,14 @@ export const renderBodyPlain = ({ component, bodyPlainSliderRef }) => {
         <div
           ref={bodyPlainSliderRef}
           className="keen-slider"
-          key={`${component.props.autoPlay}-${component.props.interval}`}
+          key={`${component.props.autoPlay}-${component.props.interval}-${component.props.images?.length}`}
         >
           {component.props.images.map((image, index) => (
             <div key={index} className="keen-slider__slide">
               <img
                 src={image}
                 alt={`bodyPlain ${index + 1}`}
-                className="w-full h-full object-fit min-h-48"
+                className="w-full h-full object-contain min-h-48 max-h-48"
                 onClick={() =>
                   handleImageClick(
                     component.id,
@@ -823,7 +835,10 @@ export const renderBrands = ({ component, brandsSliderRef }) => {
       className="py-8 px-4 w-full h-full min-h-84 bg-cover bg-center"
       style={{ backgroundImage: `url(${component.props.bg_img})` }}
     >
-      <h3 className="text-start w-full my-2 text-lg font-medium">
+      <h3
+        className="text-start w-full my-2 text-lg font-medium"
+        style={{ color: component.props.title_color }}
+      >
         {component.props.title}
       </h3>
       {component.props.images && component.props.images.length > 0 ? (
@@ -867,7 +882,10 @@ export const renderSubCategBrands = ({
 }) => {
   return (
     <div className="py-8 px-4 w-full h-full min-h-84 bg-transparent">
-      <h3 className="text-start w-full my-2 text-lg font-medium">
+      <h3
+        className="text-start w-full my-2 text-lg font-medium"
+        style={{ color: component.props.title_color }}
+      >
         {component.props.title}
       </h3>
       {component.props.images && component.props.images.length > 0 ? (

@@ -85,7 +85,8 @@ const Canvas = ({
       >
         {/* Screen */}
         <div
-          className="w-[425px] h-[767px] bg-white rounded-[1.5rem] overflow-hidden relative"
+          className="w-[425px] h-[767px] bg-white rounded-tl-[1.5rem] rounded-tr-[1.5rem] overflow-hidden relative"
+          style={{ marginBottom: "72px" }}
           onClick={handleCanvasClick}
         >
           {/* Status Bar */}
@@ -101,16 +102,16 @@ const Canvas = ({
           </div>
 
           {/* App Content */}
-          <div className="h-[calc(100%-44px)] overflow-y-auto">
+          <div className="h-[calc(100%-44px)] overflow-y-auto bg-gray-100">
             {components.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-gray-400">
+              <div className="flex items-center justify-center h-full text-black-400">
                 <div className="text-center">
                   <div className="text-6xl mb-4">📱</div>
                   <p className="text-sm font-medium">Start building your app</p>
                   <p className="text-xs mt-2">
                     Add components from the left panel
                   </p>
-                  <div className="mt-4 text-xs text-gray-300">
+                  <div className="mt-4 text-xs text-black-100">
                     <p>💡 Try starting with a Header</p>
                     <p>📦 Add some Product Grids</p>
                     <p>🦶 Finish with a Footer</p>
@@ -135,12 +136,28 @@ const Canvas = ({
           </div>
         </div>
 
+        {/* Nav Bar */}
+        <div className="absolute bottom-2 z-30 left-1/2 transform -translate-x-1/2 w-[426px] bg-white rounded-bl-[1.55rem] rounded-br-[1.55rem] border px-8 py-3 flex items-center h-18 justify-between gap-4">
+          <div className="flex flex-col items-center">
+            <img src="/images/home.png" alt="Home" className="w-7 h-7" />
+            <span className="text-sm font-bold text-blue-500">Home</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/images/cart.png" alt="Cart" className="w-6 h-6" />
+            <span className="text-sm font-semibold text-gray-500">Cart</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src="/images/more.png" alt="More" className="w-6 h-6" />
+            <span className="text-sm font-semibold text-gray-500">More</span>
+          </div>
+        </div>
+
         {/* Home Indicator */}
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-white rounded-full"></div>
+        <div className="absolute bottom-2 z-40 left-1/2 transform -translate-x-1/2 w-44 h-1 bg-black rounded-full"></div>
       </div>
 
       {/* Canvas Info */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-lg">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-black bg-opacity-40 text-white text-xs px-2 py-1 rounded-lg">
         {scale}% • {components.length} components
       </div>
 
