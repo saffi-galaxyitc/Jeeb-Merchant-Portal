@@ -601,42 +601,132 @@ export function JeebContextProvider({ children }) {
     },
     [components, updateCurrentPageComponents, selectedComponent]
   );
-
   const handleImageUpload = useCallback(
-    (componentId, file) => {
-      if (file && file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const imageUrl = e.target.result;
+    (componentId, imageUrl) => {
+      const updatedComponent = components.find(
+        (comp) => comp.id === componentId
+      );
+      if (!updatedComponent) return;
 
-          const updatedComponent = components.find(
-            (comp) => comp.id === componentId
-          );
-          if (updatedComponent) {
-            if (updatedComponent.type === "banner") {
-              handleUpdateComponent({
-                ...updatedComponent,
-                props: {
-                  ...updatedComponent.props,
-                  images: [...(updatedComponent.props.images || []), imageUrl],
-                },
-              });
-            } else {
-              handleUpdateComponent({
-                ...updatedComponent,
-                props: {
-                  ...updatedComponent.props,
-                  image: imageUrl,
-                },
-              });
-            }
-          }
-        };
-        reader.readAsDataURL(file);
+      let newProps = { ...updatedComponent.props };
+
+      switch (updatedComponent.type) {
+        case "banner":
+        case "bodyPlain":
+        case "bodyRound":
+        case "bodyHalf":
+        case "brands":
+        case "subCategBrands":
+          newProps = {
+            ...updatedComponent.props,
+            images: [...(updatedComponent.props.images || []), imageUrl],
+          };
+          break;
+
+        case "imageText":
+          newProps = {
+            ...updatedComponent.props,
+            image: imageUrl, // single image
+          };
+          break;
+
+        default:
+          console.warn("Unhandled component type:", updatedComponent.type);
+          return;
       }
+
+      handleUpdateComponent({
+        ...updatedComponent,
+        props: newProps,
+      });
     },
     [components, handleUpdateComponent]
   );
+  const handleRemoveImage = useCallback(
+    (componentId, index = null) => {
+      const updatedComponent = components.find(
+        (comp) => comp.id === componentId
+      );
+      if (!updatedComponent) return;
+
+      let newProps = { ...updatedComponent.props };
+
+      switch (updatedComponent.type) {
+        case "banner":
+        case "bodyPlain":
+        case "bodyRound":
+        case "bodyHalf":
+        case "brands":
+        case "subCategBrands": {
+          const updatedImages = [...(updatedComponent.props.images || [])];
+          if (index !== null && index >= 0 && index < updatedImages.length) {
+            updatedImages.splice(index, 1);
+          }
+          newProps = {
+            ...updatedComponent.props,
+            images: updatedImages,
+          };
+          break;
+        }
+
+        case "imageText":
+          newProps = {
+            ...updatedComponent.props,
+            image: "", // clear single image
+          };
+          break;
+
+        default:
+          console.warn(
+            "Unhandled component type in remove:",
+            updatedComponent.type
+          );
+          return;
+      }
+
+      handleUpdateComponent({
+        ...updatedComponent,
+        props: newProps,
+      });
+    },
+    [components, handleUpdateComponent]
+  );
+
+  // const handleImageUpload = useCallback(
+  //   (componentId, file) => {
+  //     if (file && file.type.startsWith("image/")) {
+  //       const reader = new FileReader();
+  //       reader.onload = (e) => {
+  //         const imageUrl = e.target.result;
+
+  //         const updatedComponent = components.find(
+  //           (comp) => comp.id === componentId
+  //         );
+  //         if (updatedComponent) {
+  //           if (updatedComponent.type === "banner") {
+  //             handleUpdateComponent({
+  //               ...updatedComponent,
+  //               props: {
+  //                 ...updatedComponent.props,
+  //                 images: [...(updatedComponent.props.images || []), imageUrl],
+  //               },
+  //             });
+  //           } else {
+  //             handleUpdateComponent({
+  //               ...updatedComponent,
+  //               props: {
+  //                 ...updatedComponent.props,
+  //                 image: imageUrl,
+  //               },
+  //             });
+  //           }
+  //         }
+  //       };
+  //       reader.readAsDataURL(file);
+  //     }
+  //   },
+  //   [components, handleUpdateComponent]
+  // );
 
   // Design management functions
   const saveDesign = useCallback(async () => {
@@ -828,6 +918,7 @@ export function JeebContextProvider({ children }) {
     handleUpdateComponent,
     handleDeleteComponent,
     handleImageUpload,
+    handleRemoveImage,
 
     // Design management
     saveDesign,

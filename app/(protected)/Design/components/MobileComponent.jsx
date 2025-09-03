@@ -23,7 +23,6 @@ const MobileComponent = ({
   isSelected,
   onUpdate,
   onDelete,
-  onImageUpload,
   isPreview = false,
 }) => {
   const bannerAutoPlayRef = useRef(component.props.autoPlay);

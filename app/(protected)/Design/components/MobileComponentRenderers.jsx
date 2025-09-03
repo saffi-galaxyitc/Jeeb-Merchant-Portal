@@ -56,8 +56,8 @@ export const renderImageRow = ({ component, handleItemClick }) => {
                       handleItemClick(
                         component.id,
                         index,
-                        item.navigation.targetPageId,
-                        item.navigation.enabled
+                        item.navigation?.targetPageId,
+                        item.navigation?.enabled
                       )
                     }
                   >
@@ -203,8 +203,8 @@ export const renderSubHeaderGrid = ({ component, handleItemClick }) => {
                       handleItemClick(
                         component.id,
                         index,
-                        component.props.imageNavigation.targetPageId,
-                        component.props.imageNavigation.enabled
+                        component.props.imageNavigation?.targetPageId,
+                        component.props.imageNavigation?.enabled
                       )
                     }
                   >
@@ -339,8 +339,8 @@ export const renderSubBodyGrid = ({ component, handleItemClick }) => {
                       handleItemClick(
                         component.id,
                         index,
-                        component.props.imageNavigation.targetPageId,
-                        component.props.imageNavigation.enabled
+                        component.props.imageNavigation?.targetPageId,
+                        component.props.imageNavigation?.enabled
                       )
                     }
                   >
@@ -421,8 +421,8 @@ export const renderProductsGrid = ({ component, handleProductClick }) => {
                   handleProductClick(
                     component.id,
                     index,
-                    component.props.productNavigation.targetPageId,
-                    component.props.productNavigation.enabled
+                    component.props.productNavigation?.targetPageId,
+                    component.props.productNavigation?.enabled
                   )
                 }
                 className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col min-w-[160px] hover:shadow-md transition-shadow duration-200"
@@ -606,8 +606,8 @@ export const renderVideoText = ({ component, handleClick }) => {
           onClick={() =>
             handleClick(
               component.id,
-              component.props.navigation.targetPageId,
-              component.props.navigation.enabled
+              component.props.navigation?.targetPageId,
+              component.props.navigation?.enabled
             )
           }
         >
@@ -673,8 +673,8 @@ export const renderImageText = ({ component, handleClick }) => {
           onClick={() =>
             handleClick(
               component.id,
-              component.props.navigation.targetPageId,
-              component.props.navigation.enabled
+              component.props.navigation?.targetPageId,
+              component.props.navigation?.enabled
             )
           }
         >

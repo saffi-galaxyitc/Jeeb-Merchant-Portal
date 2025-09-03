@@ -68,6 +68,7 @@ export default function MobileBuilderPage() {
     handleUpdateComponent,
     handleDeleteComponent,
     handleImageUpload,
+    handleRemoveImage,
 
     // Design management
     saveDesign,
@@ -306,7 +307,6 @@ export default function MobileBuilderPage() {
                 onSelectComponent={handleSelectComponent}
                 onUpdateComponent={handleUpdateComponent}
                 onDeleteComponent={handleDeleteComponent}
-                onImageUpload={handleImageUpload}
                 scale={canvasScale}
               />
             </SortableContext>
@@ -341,6 +341,7 @@ export default function MobileBuilderPage() {
             selectedComponent={selectedComponent}
             onUpdateComponent={handleUpdateComponent}
             onImageUpload={handleImageUpload}
+            onImageRemove={handleRemoveImage}
           />
         </div>
 

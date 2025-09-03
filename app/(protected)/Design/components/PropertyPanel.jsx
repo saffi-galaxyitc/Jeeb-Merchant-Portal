@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Pencil, Check } from "lucide-react";
 import { Input } from "@/app/components/ui/input";
-import { sampleProducts } from "@/lib/utils";
+import { isImageUrl, sampleProducts } from "@/lib/utils";
 import NavigationPropertyPanel from "./NavigationPropertyPanel";
 import UploadDropzone from "./UploadDropzone";
 const PropertyPanel = ({
   selectedComponent,
   onUpdateComponent,
   onImageUpload,
+  onImageRemove,
 }) => {
   //(1) Video Text State variables
   const [videoTextProps, setVideoTextProps] = useState({
@@ -89,17 +90,14 @@ const PropertyPanel = ({
   const [subBodyGridEditIndex, setSubBodyGridEditIndex] = useState(null);
   // Local state for grid title
   const [gridTitle, setGridTitle] = useState("");
-
   // Local state for selected product from dropdown
   const [selectedProductId, setSelectedProductId] = useState("");
-
   // Handle grid title change
   const handleGridTitleChange = (e) => {
     const newTitle = e.target.value;
     setGridTitle(newTitle);
     saveStateToComponent({ gridTitle: newTitle }, ["gridTitle"]);
   };
-
   // Add selected product to the products list
   const addProductToGrid = () => {
     if (!selectedProductId) return;
@@ -124,7 +122,6 @@ const PropertyPanel = ({
     // Reset selection
     setSelectedProductId("");
   };
-
   // Remove product from grid
   const removeProductFromGrid = (productId) => {
     const existingProducts = selectedComponent.props.products || [];
@@ -158,153 +155,152 @@ const PropertyPanel = ({
   const onBodyPlainChange = handleInputChange(setBodyPlainProps);
   const onBodyRoundChange = handleInputChange(setBodyRoundProps);
   const onImageTextChange = handleInputChange(setImageTextProps);
-
-  const handleImageUpload = (e, uploadCase) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    Array.from(files).forEach((file) => {
-      if (file && file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const imageUrl = event.target.result;
-
-          switch (uploadCase) {
-            case "banner":
-              setBannerProps((prev) => ({
-                ...prev,
-                images: [...(prev.images || []), imageUrl],
-              }));
-              break;
-            case "bodyPlain":
-              setBodyPlainProps((prev) => ({
-                ...prev,
-                images: [...(prev.images || []), imageUrl],
-              }));
-              break;
-            case "bodyRound":
-              setBodyRoundProps((prev) => ({
-                ...prev,
-                images: [...(prev.images || []), imageUrl],
-              }));
-              break;
-            case "bodyHalf":
-              setBodyHalfProps((prev) => ({
-                ...prev,
-                images: [...(prev.images || []), imageUrl],
-              }));
-              break;
-            case "brands":
-              setBrandsProps((prev) => ({
-                ...prev,
-                images: [...(prev.images || []), imageUrl],
-              }));
-              break;
-            case "subCategBrands":
-              setSubCategBrandsProps((prev) => ({
-                ...prev,
-                images: [...(prev.images || []), imageUrl],
-              }));
-              break;
-            case "imageText":
-              setImageTextProps((prev) => ({
-                ...prev,
-                image: imageUrl, // just set the image directly
-              }));
-              break;
-
-            default:
-              console.warn("Unknown image upload case:", uploadCase);
-              return;
-          }
-
-          if (onImageUpload) {
-            onImageUpload(selectedComponent.id, file);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
-    // Allow re-upload of the same file
-    e.target.value = "";
-  };
-
-  const handleRemoveImage = (type, index) => {
-    switch (type) {
+  const updateStateWithImage = (uploadCase, imageUrl) => {
+    switch (uploadCase) {
       case "banner":
-        setBannerProps((prev) => {
-          const updatedImages = [...(prev.images || [])];
-          if (updatedImages[index]?.startsWith("blob:")) {
-            URL.revokeObjectURL(updatedImages[index]);
-          }
-          updatedImages.splice(index, 1);
-          return { ...prev, images: updatedImages };
-        });
+        setBannerProps((prev) => ({
+          ...prev,
+          images: [...(prev.images || []), imageUrl],
+        }));
         break;
       case "bodyPlain":
-        setBodyPlainProps((prev) => {
-          const updatedImages = [...(prev.images || [])];
-          if (updatedImages[index]?.startsWith("blob:")) {
-            URL.revokeObjectURL(updatedImages[index]);
-          }
-          updatedImages.splice(index, 1);
-          return { ...prev, images: updatedImages };
-        });
+        setBodyPlainProps((prev) => ({
+          ...prev,
+          images: [...(prev.images || []), imageUrl],
+        }));
         break;
       case "bodyRound":
-        setBodyRoundProps((prev) => {
-          const updatedImages = [...(prev.images || [])];
-          if (updatedImages[index]?.startsWith("blob:")) {
-            URL.revokeObjectURL(updatedImages[index]);
-          }
-          updatedImages.splice(index, 1);
-          return { ...prev, images: updatedImages };
-        });
+        setBodyRoundProps((prev) => ({
+          ...prev,
+          images: [...(prev.images || []), imageUrl],
+        }));
         break;
       case "bodyHalf":
-        setBodyHalfProps((prev) => {
-          const updatedImages = [...(prev.images || [])];
-          if (updatedImages[index]?.startsWith("blob:")) {
-            URL.revokeObjectURL(updatedImages[index]);
-          }
-          updatedImages.splice(index, 1);
-          return { ...prev, images: updatedImages };
-        });
+        setBodyHalfProps((prev) => ({
+          ...prev,
+          images: [...(prev.images || []), imageUrl],
+        }));
         break;
       case "brands":
-        setBrandsProps((prev) => {
-          const updatedImages = [...(prev.images || [])];
-          if (updatedImages[index]?.startsWith("blob:")) {
-            URL.revokeObjectURL(updatedImages[index]);
-          }
-          updatedImages.splice(index, 1);
-          return { ...prev, images: updatedImages };
-        });
+        setBrandsProps((prev) => ({
+          ...prev,
+          images: [...(prev.images || []), imageUrl],
+        }));
         break;
       case "subCategBrands":
-        setSubCategBrandsProps((prev) => {
+        setSubCategBrandsProps((prev) => ({
+          ...prev,
+          images: [...(prev.images || []), imageUrl],
+        }));
+        break;
+      case "imageText":
+        setImageTextProps((prev) => ({
+          ...prev,
+          image: imageUrl, // only one image
+        }));
+        break;
+      default:
+        console.warn("Unknown image upload case:", uploadCase);
+        break;
+    }
+  };
+  const handleImageUpload = (input, uploadCase) => {
+    // --- Case 1: File input event ---
+    if (input?.target?.files) {
+      const files = input.target.files;
+      if (!files || files.length === 0) return;
+
+      Array.from(files).forEach((file) => {
+        if (file && file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const imageUrl = event.target.result;
+            updateStateWithImage(uploadCase, imageUrl);
+
+            if (onImageUpload) {
+              onImageUpload(selectedComponent.id, imageUrl);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Allow re-upload of the same file
+      input.target.value = "";
+    }
+
+    // --- Case 2: Direct URL ---
+    else if (typeof input === "string") {
+      const imageUrl = input;
+      updateStateWithImage(uploadCase, imageUrl);
+
+      if (onImageUpload) {
+        onImageUpload(selectedComponent.id, imageUrl);
+      }
+    }
+
+    // --- Invalid usage ---
+    else {
+      console.warn(
+        "Invalid arguments passed to handleImageUpload:",
+        input,
+        uploadCase
+      );
+    }
+  };
+  const handleRemoveImage = (componentType, index = null) => {
+    switch (componentType) {
+      case "banner":
+      case "bodyPlain":
+      case "bodyRound":
+      case "bodyHalf":
+      case "brands":
+      case "subCategBrands": {
+        const setStateForArrayType = {
+          banner: setBannerProps,
+          bodyPlain: setBodyPlainProps,
+          bodyRound: setBodyRoundProps,
+          bodyHalf: setBodyHalfProps,
+          brands: setBrandsProps,
+          subCategBrands: setSubCategBrandsProps,
+        }[componentType];
+
+        if (!setStateForArrayType) return;
+
+        setStateForArrayType((prev) => {
           const updatedImages = [...(prev.images || [])];
-          if (updatedImages[index]?.startsWith("blob:")) {
-            URL.revokeObjectURL(updatedImages[index]);
+          if (index !== null && index >= 0 && index < updatedImages.length) {
+            updatedImages.splice(index, 1);
           }
-          updatedImages.splice(index, 1);
+
+          // 🔹 Call context method to sync removal
+          if (onImageRemove) {
+            onImageRemove(selectedComponent.id, index);
+          }
+
           return { ...prev, images: updatedImages };
         });
         break;
+      }
+
       case "imageText":
-        // Clean up the single image
-        if (imageTextProps.image?.startsWith("blob:")) {
-          URL.revokeObjectURL(imageTextProps.image);
-        }
-        setImageTextProps((prev) => ({
-          ...prev,
-          image: "", // clear single image
-        }));
+        setImageTextProps((prev) => {
+          // 🔹 Call context method to sync removal
+          if (onImageRemove) {
+            onImageRemove(selectedComponent.id, null); // null since it's single image
+          }
+          return {
+            ...prev,
+            image: "", // clear single image
+          };
+        });
         break;
 
       default:
-        console.warn("Invalid image type passed to handleRemoveImage:", type);
+        console.warn(
+          "Invalid image type passed to handleRemoveImage:",
+          componentType
+        );
         break;
     }
   };
@@ -420,16 +416,10 @@ const PropertyPanel = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Images</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleImageUpload(e, "imageText")}
-          disabled={!editImageText}
-          className={`w-full p-2 border rounded ${
-            editBanner
-              ? "border-gray-300"
-              : "bg-gray-100 cursor-not-allowed border-gray-300"
-          }`}
+        <UploadDropzone
+          edit={editImageText}
+          handleImageUpload={handleImageUpload}
+          uploadCase={"imageText"}
         />
         <div className="mt-2 space-y-2">
           {(editImageText
@@ -495,7 +485,6 @@ const PropertyPanel = ({
           />
         </div>
       </div>
-
       <div>
         <label className="block text-sm font-medium mb-2">Buton Text</label>
         <div className="flex items-center space-x-2">
@@ -570,16 +559,10 @@ const PropertyPanel = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Images</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleImageUpload(e, "bodyHalf")}
-          disabled={!editBodyHalf}
-          className={`w-full p-2 border rounded ${
-            editBodyHalf
-              ? "border-gray-300"
-              : "bg-gray-100 cursor-not-allowed border-gray-300"
-          }`}
+        <UploadDropzone
+          edit={editBodyHalf}
+          handleImageUpload={handleImageUpload}
+          uploadCase={"bodyHalf"}
         />
         <div className="mt-2 space-y-2">
           {(editBodyHalf
@@ -651,16 +634,10 @@ const PropertyPanel = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Images</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleImageUpload(e, "brands")}
-          disabled={!editBrands}
-          className={`w-full p-2 border rounded ${
-            editBrands
-              ? "border-gray-300"
-              : "bg-gray-100 cursor-not-allowed border-gray-300"
-          }`}
+        <UploadDropzone
+          edit={editBrands}
+          handleImageUpload={handleImageUpload}
+          uploadCase={"brands"}
         />
         <div className="my-2 space-y-2">
           {(editBrands
@@ -781,16 +758,10 @@ const PropertyPanel = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Images</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleImageUpload(e, "subCategBrands")}
-          disabled={!editsubCategBrands}
-          className={`w-full p-2 border rounded ${
-            editsubCategBrands
-              ? "border-gray-300"
-              : "bg-gray-100 cursor-not-allowed border-gray-300"
-          }`}
+        <UploadDropzone
+          edit={editsubCategBrands}
+          handleImageUpload={handleImageUpload}
+          uploadCase={"subCategBrands"}
         />
         <div className="my-2 space-y-2">
           {(editsubCategBrands
@@ -915,47 +886,6 @@ const PropertyPanel = ({
           handleImageUpload={handleImageUpload}
           uploadCase={"banner"}
         />
-        {/* <input
-          type="file"
-          accept="image/*"
-          // multiple
-          onChange={(e) => handleImageUpload(e, "banner")}
-          disabled={!editBanner}
-          className={`w-full p-2 border rounded ${
-            editBanner
-              ? "border-gray-300"
-              : "bg-gray-100 cursor-not-allowed border-gray-300"
-          }`}
-        /> */}
-        <div className="flex items-center justify-center gap-2 py-4 w-full">
-          <span
-            className={`flex-grow border-t border-1 border-dashed ${
-              editBanner ? "border-gray-300" : "border-gray-200"
-            }`}
-          ></span>
-          <span
-            className={`font-bold ${
-              editBanner ? "text-gray-300" : "text-gray-200"
-            }`}
-          >
-            Or
-          </span>
-          <span
-            className={`flex-grow border-t border-1 border-dashed ${
-              editBanner ? "border-gray-300" : "border-gray-200"
-            }`}
-          ></span>
-        </div>
-        <div>
-          <input
-            type="text"
-            placeholder="Image URL"
-            readOnly={!editBanner}
-            className={`w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              !editBanner ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
-            }`}
-          />
-        </div>
         <div className="mt-4 space-y-2">
           {(editBanner
             ? bannerProps.images
@@ -1065,16 +995,10 @@ const PropertyPanel = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Images</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleImageUpload(e, "bodyPlain")}
-          disabled={!editBodyPlain}
-          className={`w-full p-2 border rounded ${
-            editBodyPlain
-              ? "border-gray-300"
-              : "bg-gray-100 cursor-not-allowed border-gray-300"
-          }`}
+        <UploadDropzone
+          edit={editBodyPlain}
+          handleImageUpload={handleImageUpload}
+          uploadCase={"bodyPlain"}
         />
         <div className="mt-2 space-y-2">
           {(editBodyPlain
@@ -1188,16 +1112,10 @@ const PropertyPanel = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Images</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleImageUpload(e, "bodyRound")}
-          disabled={!editBodyRound}
-          className={`w-full p-2 border rounded ${
-            editBodyRound
-              ? "border-gray-300"
-              : "bg-gray-100 cursor-not-allowed border-gray-300"
-          }`}
+        <UploadDropzone
+          edit={editBodyRound}
+          handleImageUpload={handleImageUpload}
+          uploadCase={"bodyRound"}
         />
         <div className="mt-2 space-y-2">
           {(editBodyRound
@@ -1290,18 +1208,42 @@ const PropertyPanel = ({
             <div key={index} className="border border-gray-200 rounded p-3">
               {imageRowEditIndex === index ? (
                 <div className="space-y-2">
-                  <input
+                  <UploadDropzone
+                    edit={true}
+                    uploadCase="item"
+                    handleItemImageUpload={(fileOrUrl) => {
+                      if (typeof fileOrUrl === "string") {
+                        // URL case
+                        setImageRowItem((prev) => ({
+                          ...prev,
+                          image: fileOrUrl,
+                        }));
+                      } else {
+                        // File case → convert to base64
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setImageRowItem((prev) => ({
+                            ...prev,
+                            image: reader.result,
+                          }));
+                        };
+                        reader.readAsDataURL(fileOrUrl);
+                      }
+                    }}
+                  />
+
+                  {/* <input
                     type="text"
                     placeholder="Image URL"
                     value={imageRowItem.image}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setImageRowItem((prev) => ({
                         ...prev,
                         image: e.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                  />
+                  /> */}
                   <input
                     type="text"
                     placeholder="Text"
@@ -1312,7 +1254,7 @@ const PropertyPanel = ({
                         text: e.target.value,
                       }))
                     }
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   />
                   <div className="flex gap-2">
                     <button
@@ -1326,7 +1268,7 @@ const PropertyPanel = ({
                           onUpdateComponent
                         )
                       }
-                      className="flex-1 bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                      className="flex-1 px-3 py-2 rounded bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
                     >
                       Save
                     </button>
@@ -1334,7 +1276,7 @@ const PropertyPanel = ({
                       onClick={() =>
                         cancelEdit(setImageRowEditIndex, setImageRowItem)
                       }
-                      className="flex-1 bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600"
+                      className="flex-1 px-3 py-2 rounded bg-white text-blue-500 text-sm font-medium border-2 border-blue-600"
                     >
                       Cancel
                     </button>
@@ -1363,7 +1305,7 @@ const PropertyPanel = ({
                           selectedComponent
                         )
                       }
-                      className="flex-1 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+                      className="flex-1 px-3 py-2 rounded bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
                     >
                       Edit
                     </button>
@@ -1371,7 +1313,7 @@ const PropertyPanel = ({
                       onClick={() =>
                         removeItem(index, selectedComponent, onUpdateComponent)
                       }
-                      className="flex-1 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                      className="flex-1 px-3 py-2 rounded bg-white text-blue-500 text-sm font-medium border-2 border-blue-600"
                     >
                       Remove
                     </button>
@@ -1404,7 +1346,30 @@ const PropertyPanel = ({
             <div key={index} className="border border-gray-200 rounded p-3">
               {subHeaderGridEditIndex === index ? (
                 <div className="space-y-2">
-                  <input
+                  <UploadDropzone
+                    edit={true}
+                    uploadCase="item"
+                    handleItemImageUpload={(fileOrUrl) => {
+                      if (typeof fileOrUrl === "string") {
+                        // URL case
+                        setSubHeaderGridItem((prev) => ({
+                          ...prev,
+                          image: fileOrUrl,
+                        }));
+                      } else {
+                        // File case → convert to base64
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setSubHeaderGridItem((prev) => ({
+                            ...prev,
+                            image: reader.result,
+                          }));
+                        };
+                        reader.readAsDataURL(fileOrUrl);
+                      }
+                    }}
+                  />
+                  {/* <input
                     type="text"
                     placeholder="Image URL"
                     value={subHeaderGridItem.image}
@@ -1415,7 +1380,7 @@ const PropertyPanel = ({
                       }))
                     }
                     className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                  />
+                  /> */}
                   <input
                     type="text"
                     placeholder="Text"
@@ -1426,7 +1391,7 @@ const PropertyPanel = ({
                         text: e.target.value,
                       }))
                     }
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   />
                   <div className="flex gap-2">
                     <button
@@ -1440,7 +1405,7 @@ const PropertyPanel = ({
                           onUpdateComponent
                         )
                       }
-                      className="flex-1 bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                      className="flex-1 px-3 py-2 rounded bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
                     >
                       Save
                     </button>
@@ -1451,7 +1416,7 @@ const PropertyPanel = ({
                           setSubHeaderGridItem
                         )
                       }
-                      className="flex-1 bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600"
+                      className="flex-1 px-3 py-2 rounded bg-white text-blue-500 text-sm font-medium border-2 border-blue-600"
                     >
                       Cancel
                     </button>
@@ -1480,7 +1445,7 @@ const PropertyPanel = ({
                           selectedComponent
                         )
                       }
-                      className="flex-1 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+                      className="flex-1 px-3 py-2 rounded bg-blue-500 text-white text-sm font-medium hover:bg-blue-600"
                     >
                       Edit
                     </button>
@@ -1488,7 +1453,7 @@ const PropertyPanel = ({
                       onClick={() =>
                         removeItem(index, selectedComponent, onUpdateComponent)
                       }
-                      className="flex-1 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                      className="flex-1 px-3 py-2 rounded bg-white text-blue-500 text-sm font-medium border-2 border-blue-600"
                     >
                       Remove
                     </button>
@@ -1521,7 +1486,30 @@ const PropertyPanel = ({
             <div key={index} className="border border-gray-200 rounded p-3">
               {subBodyGridEditIndex === index ? (
                 <div className="space-y-2">
-                  <input
+                  <UploadDropzone
+                    edit={true}
+                    uploadCase="item"
+                    handleItemImageUpload={(fileOrUrl) => {
+                      if (typeof fileOrUrl === "string") {
+                        // URL case
+                        setSubBodyGridItem((prev) => ({
+                          ...prev,
+                          image: fileOrUrl,
+                        }));
+                      } else {
+                        // File case → convert to base64
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setSubBodyGridItem((prev) => ({
+                            ...prev,
+                            image: reader.result,
+                          }));
+                        };
+                        reader.readAsDataURL(fileOrUrl);
+                      }
+                    }}
+                  />
+                  {/* <input
                     type="text"
                     placeholder="Image URL"
                     value={subBodyGridItem.image}
@@ -1532,7 +1520,7 @@ const PropertyPanel = ({
                       }))
                     }
                     className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                  />
+                  /> */}
                   <input
                     type="text"
                     placeholder="Text"
@@ -1543,7 +1531,7 @@ const PropertyPanel = ({
                         text: e.target.value,
                       }))
                     }
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    className="w-full h-full border border-gray-300 rounded px-2 py-1 text-sm"
                   />
                   <div className="flex gap-2">
                     <button
@@ -1557,7 +1545,7 @@ const PropertyPanel = ({
                           onUpdateComponent
                         )
                       }
-                      className="flex-1 bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                      className="flex-1 h-full bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
                     >
                       Save
                     </button>
@@ -1565,7 +1553,7 @@ const PropertyPanel = ({
                       onClick={() =>
                         cancelEdit(setSubBodyGridEditIndex, setSubBodyGridItem)
                       }
-                      className="flex-1 bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600"
+                      className="flex-1 h-full bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600"
                     >
                       Cancel
                     </button>
@@ -1594,7 +1582,7 @@ const PropertyPanel = ({
                           selectedComponent
                         )
                       }
-                      className="flex-1 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+                      className="flex-1 h-full bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
                     >
                       Edit
                     </button>
@@ -1602,7 +1590,7 @@ const PropertyPanel = ({
                       onClick={() =>
                         removeItem(index, selectedComponent, onUpdateComponent)
                       }
-                      className="flex-1 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                      className="flex-1 h-full bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
                     >
                       Remove
                     </button>

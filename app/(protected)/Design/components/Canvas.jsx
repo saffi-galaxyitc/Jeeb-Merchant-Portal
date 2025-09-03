@@ -57,7 +57,6 @@ const SortableComponent = ({
         isSelected={selectedComponent?.id === component.id}
         onUpdate={onUpdateComponent}
         onDelete={onDeleteComponent}
-        onImageUpload={onImageUpload}
       />
     </div>
   );
@@ -69,7 +68,6 @@ const Canvas = ({
   onSelectComponent,
   onUpdateComponent,
   onDeleteComponent,
-  onImageUpload,
   scale,
 }) => {
   const handleCanvasClick = () => {
@@ -128,7 +126,6 @@ const Canvas = ({
                     onSelectComponent={onSelectComponent}
                     onUpdateComponent={onUpdateComponent}
                     onDeleteComponent={onDeleteComponent}
-                    onImageUpload={onImageUpload}
                   />
                 ))}
               </div>
