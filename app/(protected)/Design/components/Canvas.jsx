@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import MobileComponent from "./MobileComponent";
+import { useEffect, useRef } from "react";
 
 const SortableComponent = ({
   component,
@@ -19,6 +20,17 @@ const SortableComponent = ({
     transition,
     isDragging,
   } = useSortable({ id: component.id });
+  const elementRef = useRef(null);
+
+  // Scroll into view when this component becomes selected
+  useEffect(() => {
+    if (selectedComponent?.id === component.id && elementRef.current) {
+      elementRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [selectedComponent, component.id]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -33,7 +45,10 @@ const SortableComponent = ({
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(node) => {
+        setNodeRef(node); // dnd-kit ref
+        elementRef.current = node; // local ref for scroll
+      }}
       style={style}
       className={`relative ${
         selectedComponent?.id === component.id ? "ring-2 ring-blue-500" : ""

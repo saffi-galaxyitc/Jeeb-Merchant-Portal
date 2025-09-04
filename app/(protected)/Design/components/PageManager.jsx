@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverTrigger,
@@ -24,6 +24,7 @@ const PageManager = ({
   const [editingPageId, setEditingPageId] = useState(null);
   const [editingName, setEditingName] = useState("");
   const [showPageMenu, setShowPageMenu] = useState(null);
+  const [showSections, setShowSections] = useState(false);
   console.log("pages", pages);
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
@@ -36,7 +37,6 @@ const PageManager = ({
       setOpen(false);
     }
   };
-
   const handleRemoveSection = (id, e) => {
     console.log("remove section");
     e.stopPropagation();
@@ -50,7 +50,6 @@ const PageManager = ({
     setEditingName(page.name);
     setShowPageMenu(null);
   };
-
   const handleSaveEdit = () => {
     if (editingName.trim()) {
       onRenamePage(editingPageId, editingName.trim());
@@ -58,12 +57,10 @@ const PageManager = ({
     setEditingPageId(null);
     setEditingName("");
   };
-
   const handleCancelEdit = () => {
     setEditingPageId(null);
     setEditingName("");
   };
-
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSaveEdit();
@@ -71,6 +68,15 @@ const PageManager = ({
       handleCancelEdit();
     }
   };
+  useEffect(() => {
+    const currentPage = pages.find((page) => page.id === currentPageId);
+
+    if (currentPage && currentPage.components?.length > 0) {
+      setShowSections(true);
+    } else {
+      setShowSections(false);
+    }
+  }, [pages, currentPageId]);
 
   return (
     <div className="space-y-3 mx-4">
@@ -264,20 +270,22 @@ const PageManager = ({
           </div>
         ))}
       </div>
-      <PageSections
-        pages={pages}
-        currentPageId={currentPageId}
-        open={open}
-        setOpen={setOpen}
-        newLabel={newLabel}
-        setNewLabel={setNewLabel}
-        handleAddItem={handleAddItem}
-        handleRemoveItem={handleRemoveItem}
-        handleRemoveSection={handleRemoveSection}
-        selectedComponent={selectedComponent}
-        onSelectComponent={onSelectComponent}
-        items={items}
-      />
+      {showSections && (
+        <PageSections
+          pages={pages}
+          currentPageId={currentPageId}
+          open={open}
+          setOpen={setOpen}
+          newLabel={newLabel}
+          setNewLabel={setNewLabel}
+          handleAddItem={handleAddItem}
+          handleRemoveItem={handleRemoveItem}
+          handleRemoveSection={handleRemoveSection}
+          selectedComponent={selectedComponent}
+          onSelectComponent={onSelectComponent}
+          items={items}
+        />
+      )}
 
       {showPageMenu && (
         <div

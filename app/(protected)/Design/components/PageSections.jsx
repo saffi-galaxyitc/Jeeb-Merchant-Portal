@@ -5,37 +5,38 @@ import {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "@/app/components/ui/collapsible";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/app/components/ui/dialog";
-import { Input } from "@/app/components/ui/input";
-import { Button } from "@/app/components/ui/button";
+import { getComponentByType } from "@/lib/utils";
+// import {
+//   Dialog,
+//   DialogTrigger,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogFooter,
+// } from "@/app/components/ui/dialog";
+// import { Input } from "@/app/components/ui/input";
+// import { Button } from "@/app/components/ui/button";
 
 import { Plus, ChevronDown, Trash2 } from "lucide-react";
-
 export default function PageSections({
   pages,
   currentPageId,
-  open,
-  setOpen,
-  newLabel,
-  setNewLabel,
-  handleAddItem,
-  handleRemoveItem,
+  // open,
+  // setOpen,
+  // newLabel,
+  // setNewLabel,
+  // handleAddItem,
+  // handleRemoveItem,
   handleRemoveSection,
   selectedComponent,
   onSelectComponent,
-  items,
+  // items,
 }) {
   const handleComponentClick = (component, event) => {
     event.stopPropagation();
     onSelectComponent(component);
   };
+
   return (
     <div className="space-y-1 max-h-64 h-64 overflow-y-auto border-b border-gray-200">
       <div className="flex my-4 w-full items-start">
@@ -57,48 +58,9 @@ export default function PageSections({
                   className="cursor-pointer"
                   onClick={(e) => handleComponentClick(component, e)}
                 >
-                  {component.type || component.props.title}
+                  {getComponentByType(component.type)?.name}
                 </span>
                 <div className="flex items-center space-x-2">
-                  {/* Dialog for adding item */}
-                  <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                      <Plus
-                        className="h-4 w-4 rounded bg-white text-gray-800 cursor-pointer hover:bg-gray-800 hover:text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddItem(component.id);
-                        }}
-                      />
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Add new item</DialogTitle>
-                      </DialogHeader>
-                      <Input
-                        value={newLabel}
-                        onChange={(e) => setNewLabel(e.target.value)}
-                        placeholder="Enter item label"
-                      />
-                      <DialogFooter className="mt-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={handleAddItem}
-                          disabled={!newLabel.trim()}
-                        >
-                          Add
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-
                   <div
                     role="button"
                     tabIndex={0}
@@ -113,26 +75,87 @@ export default function PageSections({
                   <ChevronDown className="h-4 w-4" />
                 </div>
               </CollapsibleTrigger>
-              <CollapsibleContent className=" space-y-1 bg-gray-100 rounded-md mt-2">
-                <ul className="relative pt-4 pb-4 pl-6 pr-4 space-y-4">
-                  {items.map((item, index) => (
-                    <li key={index} className="flex items-center relative pl-4">
-                      <span className="absolute left-0 top-0 h-1/2 w-px bg-gray-700" />
-                      <span className="absolute left-0 top-1/2 w-6 h-px bg-gray-700" />
-                      <span className="text-gray-800 text-sm ml-4">{item}</span>
-                      <button
-                        onClick={() => handleRemoveItem(index)}
-                        className="ml-auto text-gray-400 hover:text-red-500"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+              <CollapsibleContent className=" space-y-1 bg-gray-100 rounded-md mt-2 p-3">
+                {(() => {
+                  const compInfo = getComponentByType(component.type);
+                  return (
+                    <div className="flex items-center justify-center space-x-3">
+                      <img
+                        src={compInfo?.icon}
+                        alt={compInfo.name}
+                        className="w-10 h-10 rounded-md shadow-sm border bg-white"
+                      />
+                      <div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {compInfo.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
               </CollapsibleContent>
             </Collapsible>
           </div>
         ))}
     </div>
   );
+}
+{
+  /* Dialog for adding item */
+}
+{
+  /* <Dialog open={open} onOpenChange={setOpen}>
+  <DialogTrigger asChild>
+    <Plus
+      className="h-4 w-4 rounded bg-white text-gray-800 cursor-pointer hover:bg-gray-800 hover:text-white"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleAddItem(component.id);
+      }}
+    />
+  </DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Add new item</DialogTitle>
+    </DialogHeader>
+    <Input
+      value={newLabel}
+      onChange={(e) => setNewLabel(e.target.value)}
+      placeholder="Enter item label"
+    />
+    <DialogFooter className="mt-4">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setOpen(false)}
+      >
+        Cancel
+      </Button>
+      <Button
+        type="button"
+        onClick={handleAddItem}
+        disabled={!newLabel.trim()}
+      >
+        Add
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog> */
+}
+{
+  /* <ul className="relative pt-4 pb-4 pl-6 pr-4 space-y-4">
+  {items.map((item, index) => (
+    <li key={index} className="flex items-center relative pl-4">
+      <span className="absolute left-0 top-0 h-1/2 w-px bg-gray-700" />
+      <span className="absolute left-0 top-1/2 w-6 h-px bg-gray-700" />
+      <span className="text-gray-800 text-sm ml-4">{item}</span>
+      <button
+        onClick={() => handleRemoveItem(index)}
+        className="ml-auto text-gray-400 hover:text-red-500"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+    </li>
+  ))}
+</ul> */
 }

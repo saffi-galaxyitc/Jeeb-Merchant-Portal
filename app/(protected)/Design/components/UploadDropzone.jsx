@@ -50,7 +50,7 @@ const UploadDropzone = ({
 
   const validateAndUploadUrl = () => {
     if (!urlInput) return;
-
+    const currentUrl = urlInput;
     // --- Step 1: Smarter URL validation ---
     const validateImageUrl = (url) => {
       try {
@@ -74,7 +74,7 @@ const UploadDropzone = ({
       }
     };
 
-    if (!validateImageUrl(urlInput)) {
+    if (!validateImageUrl(currentUrl)) {
       setUrlError("Invalid image URL format");
       return;
     }
@@ -84,15 +84,17 @@ const UploadDropzone = ({
     img.onload = () => {
       setUrlError("");
       if (uploadCase === "item" && handleItemImageUpload) {
-        handleItemImageUpload(urlInput); // 👈 directly update imageRow with URL
+        handleItemImageUpload(currentUrl); // 👈 directly update imageRow with URL
       } else {
-        handleImageUpload(urlInput, uploadCase);
+        handleImageUpload(currentUrl, uploadCase);
       }
+      // ✅ Now safe to clear input
+      setUrlInput("");
     };
     img.onerror = () => {
       setUrlError("Image could not be loaded");
     };
-    img.src = urlInput;
+    img.src = currentUrl;
   };
 
   return (

@@ -444,25 +444,33 @@ export const renderProductsGrid = ({ component, handleProductClick }) => {
                   </svg>
                 </div>
 
-                {/* Product Image Placeholder */}
+                {/* Product Image and Placeholder */}
                 <div className="w-full h-32 bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-2 flex items-center justify-center">
-                      <svg
-                        className="w-6 h-6 text-gray-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        />
-                      </svg>
+                  {product?.image ? (
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-contain rounded-lg"
+                    />
+                  ) : (
+                    <div className="text-center">
+                      <div className="w-12 h-12 bg-gray-300 rounded-full mx-auto mb-2 flex items-center justify-center">
+                        <svg
+                          className="w-6 h-6 text-gray-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                          />
+                        </svg>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Product Name */}
