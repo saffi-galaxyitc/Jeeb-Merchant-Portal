@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils"; // ShadCN's utility for classnames
 import { usePathname } from "next/navigation";
-import { ProfileItem } from "@/app/(protected)/design/components/ProfileItem";
+import { ProfileItem } from "@/app/protected/design/components/ProfileItem.jsx";
 import { useJeebContext } from "../context/JeebContext";
 import { useAuth } from "../mainContext/AuthContext";
 
