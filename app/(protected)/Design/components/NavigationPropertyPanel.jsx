@@ -3,6 +3,9 @@ import {
   ChevronDown,
   ChevronRight,
   Link,
+  Tag,
+  Folder,
+  Package,
   ExternalLink,
   ArrowRight,
   ToggleLeft,
@@ -12,8 +15,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useJeebContext } from "@/app/context/JeebContext";
 import { PageCombobox } from "./PageCombobox";
+import NavigationTypeSelection from "./NavigationTypeSelection";
+import ProductSelectorDialog from "../../products/ProductSelectorDialog";
 
-const NavigationPropertyPanel = ({ selectedComponent }) => {
+const NavigationPropertyPanel = ({
+  selectedComponent,
+  itemNavigationUpdate,
+  // selectedNavOption,
+  // setSelectedNavOption,
+}) => {
   const {
     pages,
     currentPageId,
@@ -23,6 +33,7 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
     updateComponentNavigation,
     allowEditModeNavigation,
     setAllowEditModeNavigation,
+    updateNavigationTarget,
   } = useJeebContext();
 
   const [expandedSections, setExpandedSections] = useState({});
@@ -73,36 +84,20 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
     selectedComponent.type
   );
 
-  const renderPageSelect = (value, onChange, disabled = false) => (
+  const renderPageSelect = (value, onChange, navigation = "SubCategory") => (
     <PageCombobox
       value={value}
       onChange={onChange}
       availablePages={availablePages}
-      disabled={disabled}
+      disabled={navigation === "SubCategory" ? false : true}
     />
-  );
-
-  const renderToggle = (enabled, onChange) => (
-    <button
-      onClick={() => onChange(!enabled)}
-      className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-        enabled
-          ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-      }`}
-    >
-      {enabled ? (
-        <ToggleRight className="w-4 h-4" />
-      ) : (
-        <ToggleLeft className="w-4 h-4" />
-      )}
-      {/* {enabled ? "Enabled" : "Disabled"} */}
-    </button>
   );
 
   const renderDirectNavigation = () => {
     const navigation = selectedComponent.props.navigation || {
+      id: false,
       enabled: false,
+      navigation: null,
       targetPageId: null,
     };
 
@@ -112,42 +107,110 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
           <span className="text-sm font-medium text-gray-700">
             Component Navigation
           </span>
-          {renderToggle(navigation.enabled, (enabled) =>
-            updateComponentNavigation(
-              selectedComponent.id,
+        </div>
+        <NavigationTypeSelection
+          navigation={navigation?.navigation || "SubCategory"}
+          itemNavigationUpdate={itemNavigationUpdate}
+          componentId={selectedComponent.id}
+          itemId={navigation?.id}
+        />
+        {navigation?.navigation === "SubCategory" ? (
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+              Category Pages
+            </label>
+            {renderPageSelect(
               navigation.targetPageId,
-              enabled
-            )
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-            Target Page
-          </label>
-          {renderPageSelect(
-            navigation.targetPageId,
-            (targetPageId) =>
-              updateComponentNavigation(
-                selectedComponent.id,
-                targetPageId,
-                navigation.enabled
-              ),
-            !navigation.enabled
-          )}
-        </div>
-
-        {/* {navigation.enabled && navigation.targetPageId && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
-            <ArrowRight className="w-4 h-4 text-green-600" />
-            <span className="text-sm text-green-700">
-              Clicks will navigate to:{" "}
-              <strong>
-                {pages.find((p) => p.id === navigation.targetPageId)?.name}
-              </strong>
-            </span>
+              // (targetPageId) =>
+              //   updateComponentNavigation(
+              //     selectedComponent.id,
+              //     targetPageId,
+              //     navigation.enabled,
+              //     navigation.navigation
+              //   ),
+              (targetPageId) =>
+                updateNavigationTarget(
+                  selectedComponent.id,
+                  targetPageId,
+                  navigation?.id
+                ),
+              navigation.navigation
+            )}
           </div>
-        )} */}
+        ) : (
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+              Products & Filters
+            </label>
+            <ProductSelectorDialog
+              componentId={selectedComponent.id}
+              itemId={navigation?.id}
+            />
+          </div>
+        )}
+        {navigation?.navigation === "AllProducts" &&
+          navigation?.targetPageId && (
+            <div className="flex flex-col gap-3 p-3 border border-gray-200 rounded-md mt-2">
+              {/* Products count */}
+              {navigation?.products?.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Package size={16} className="text-blue-500" />
+                    <span className="text-sm font-medium text-blue-500">
+                      Selected Products:
+                    </span>
+                  </div>
+                  <span className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300">
+                    {navigation.products.length}
+                  </span>
+                </div>
+              )}
+
+              {/* Tags */}
+              {navigation?.tags?.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Tag size={16} className="text-blue-500" />
+                    <span className="text-sm font-medium text-blue-500">
+                      Tags:
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {navigation.tags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300"
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Categories */}
+              {navigation?.categories?.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Folder size={16} className="text-blue-500" />
+                    <span className="text-sm font-medium text-blue-500">
+                      Categories
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {navigation.categories.map((cat) => (
+                      <span
+                        key={cat.id}
+                        className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300"
+                      >
+                        {cat.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
       </div>
     );
   };
@@ -177,9 +240,12 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
 
         <div className="space-y-3">
           {images.map((image, index) => {
-            const navConfig = imageNavigation.find(
-              (nav) => nav.imageIndex === index
-            ) || { enabled: false, targetPageId: null };
+            const navConfig = imageNavigation[index] || {
+              id: false,
+              enabled: false,
+              navigation: false,
+              targetPageId: null,
+            };
 
             return (
               <div
@@ -197,42 +263,111 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
                       Image {index + 1}
                     </span>
                   </div>
-                  {renderToggle(navConfig.enabled, (enabled) =>
-                    updateImageNavigation(
-                      selectedComponent.id,
-                      index,
+                </div>
+                <NavigationTypeSelection
+                  navigation={navConfig?.navigation || "SubCategory"}
+                  itemNavigationUpdate={itemNavigationUpdate}
+                  componentId={selectedComponent.id}
+                  itemId={navConfig?.id}
+                />
+                {navConfig?.navigation === "SubCategory" ? (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                      Category Pages
+                    </label>
+                    {renderPageSelect(
                       navConfig.targetPageId,
-                      enabled
-                    )
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    Target Page
-                  </label>
-                  {renderPageSelect(
-                    navConfig.targetPageId,
-                    (targetPageId) =>
-                      updateImageNavigation(
-                        selectedComponent.id,
-                        index,
-                        targetPageId,
-                        navConfig.enabled
-                      ),
-                    !navConfig.enabled
-                  )}
-                </div>
-
-                {/* {navConfig.enabled && navConfig.targetPageId && (
-                  <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-md mt-2">
-                    <ExternalLink className="w-3 h-3 text-green-600" />
-                    <span className="text-xs text-green-700">
-                      →{" "}
-                      {pages.find((p) => p.id === navConfig.targetPageId)?.name}
-                    </span>
+                      // (targetPageId) =>
+                      // updateImageNavigation(
+                      //   selectedComponent.id,
+                      //   index,
+                      //   targetPageId,
+                      //   navConfig.enabled,
+                      //   navConfig.navigation
+                      // ),
+                      (targetPageId) =>
+                        updateNavigationTarget(
+                          selectedComponent.id,
+                          targetPageId,
+                          navConfig?.id
+                        ),
+                      navConfig.navigation
+                    )}
                   </div>
-                )} */}
+                ) : (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                      Products & Filters
+                    </label>
+                    <ProductSelectorDialog
+                      componentId={selectedComponent.id}
+                      itemId={navConfig?.id}
+                    />
+                  </div>
+                )}
+                {navConfig?.navigation === "AllProducts" &&
+                  navConfig?.targetPageId && (
+                    <div className="flex flex-col gap-3 p-3 border border-gray-200 rounded-md mt-2">
+                      {/* Products count */}
+                      {navConfig?.products?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Package size={16} className="text-blue-500" />
+                            <span className="text-sm font-medium text-blue-500">
+                              Selected Products:
+                            </span>
+                          </div>
+                          <span className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300">
+                            {navConfig.products.length}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Tags */}
+                      {navConfig?.tags?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Tag size={16} className="text-blue-500" />
+                            <span className="text-sm font-medium text-blue-500">
+                              Tags:
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {navConfig.tags.map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300"
+                              >
+                                {tag.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Categories */}
+                      {navConfig?.categories?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Folder size={16} className="text-blue-500" />
+                            <span className="text-sm font-medium text-blue-500">
+                              Categories
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {navConfig.categories.map((cat) => (
+                              <span
+                                key={cat.id}
+                                className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300"
+                              >
+                                {cat.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
             );
           })}
@@ -266,7 +401,9 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {items.map((item, index) => {
             const navConfig = item.navigation || {
+              id: false,
               enabled: false,
+              navigation: null,
               targetPageId: null,
             };
 
@@ -282,14 +419,6 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
                         <span className="text-sm font-medium">
                           {index + 1} #
                         </span>
-                        {renderToggle(navConfig.enabled, (enabled) =>
-                          updateItemNavigation(
-                            selectedComponent.id,
-                            index,
-                            navConfig.targetPageId,
-                            enabled
-                          )
-                        )}
                       </div>
                       <div className="flex items-start gap-2 py-2">
                         {item.image && (
@@ -306,33 +435,111 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
                     </div>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    Target Page
-                  </label>
-                  {renderPageSelect(
-                    navConfig.targetPageId,
-                    (targetPageId) =>
-                      updateItemNavigation(
-                        selectedComponent.id,
-                        index,
-                        targetPageId,
-                        navConfig.enabled
-                      ),
-                    !navConfig.enabled
-                  )}
-                </div>
-
-                {navConfig.enabled && navConfig.targetPageId && (
-                  <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-md mt-2">
-                    <ExternalLink className="w-3 h-3 text-green-600" />
-                    <span className="text-xs text-green-700">
-                      →{" "}
-                      {pages.find((p) => p.id === navConfig.targetPageId)?.name}
-                    </span>
+                <NavigationTypeSelection
+                  navigation={navConfig?.navigation || "SubCategory"}
+                  itemNavigationUpdate={itemNavigationUpdate}
+                  componentId={selectedComponent.id}
+                  itemId={navConfig?.id}
+                />
+                {navConfig?.navigation === "SubCategory" ? (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                      Category Pages
+                    </label>
+                    {renderPageSelect(
+                      navConfig.targetPageId,
+                      // (targetPageId) =>
+                      // updateItemNavigation(
+                      //   selectedComponent.id,
+                      //   index,
+                      //   targetPageId,
+                      //   navConfig.enabled,
+                      //   navConfig.navigation
+                      // ),
+                      (targetPageId) =>
+                        updateNavigationTarget(
+                          selectedComponent.id,
+                          targetPageId,
+                          navConfig?.id
+                        ),
+                      navConfig.navigation
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                      Products & Filters
+                    </label>
+                    <ProductSelectorDialog
+                      componentId={selectedComponent.id}
+                      itemId={navConfig?.id}
+                    />
                   </div>
                 )}
+
+                {navConfig?.navigation === "AllProducts" &&
+                  navConfig?.targetPageId && (
+                    <div className="flex flex-col gap-3 p-3 border border-gray-200 rounded-md mt-2">
+                      {/* Products count */}
+                      {navConfig?.products?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Package size={16} className="text-blue-500" />
+                            <span className="text-sm font-medium text-blue-500">
+                              Selected Products:
+                            </span>
+                          </div>
+                          <span className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300">
+                            {navConfig.products.length}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Tags */}
+                      {navConfig?.tags?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Tag size={16} className="text-blue-500" />
+                            <span className="text-sm font-medium text-blue-500">
+                              Tags:
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {navConfig.tags.map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300"
+                              >
+                                {tag.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Categories */}
+                      {navConfig?.categories?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Folder size={16} className="text-blue-500" />
+                            <span className="text-sm font-medium text-blue-500">
+                              Categories
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {navConfig.categories.map((cat) => (
+                              <span
+                                key={cat.id}
+                                className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300"
+                              >
+                                {cat.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
             );
           })}
@@ -366,9 +573,11 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
 
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {products.map((product, index) => {
-            const navConfig = productNavigation.find(
-              (nav) => nav.productIndex === index
-            ) || { enabled: false, targetPageId: null };
+            const navConfig = productNavigation[index] || {
+              enabled: false,
+              navigation: null,
+              targetPageId: null,
+            };
 
             return (
               <div
@@ -389,14 +598,6 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
                         <span className="text-sm font-medium">
                           {index + 1} #
                         </span>
-                        {renderToggle(navConfig.enabled, (enabled) =>
-                          updateProductNavigation(
-                            selectedComponent.id,
-                            index,
-                            navConfig.targetPageId,
-                            enabled
-                          )
-                        )}
                       </div>
                       {product.name && (
                         <p className="text-md text-gray-500 ">{product.name}</p>
@@ -404,33 +605,106 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
                     </div>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    Target Page
-                  </label>
-                  {renderPageSelect(
-                    navConfig.targetPageId,
-                    (targetPageId) =>
-                      updateProductNavigation(
-                        selectedComponent.id,
-                        index,
-                        targetPageId,
-                        navConfig.enabled
-                      ),
-                    !navConfig.enabled
-                  )}
-                </div>
-
-                {/* {navConfig.enabled && navConfig.targetPageId && (
-                  <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-md mt-2">
-                    <ExternalLink className="w-3 h-3 text-green-600" />
-                    <span className="text-xs text-green-700">
-                      →{" "}
-                      {pages.find((p) => p.id === navConfig.targetPageId)?.name}
-                    </span>
+                <NavigationTypeSelection
+                  navigation={navConfig?.navigation || "SubCategory"}
+                  itemNavigationUpdate={itemNavigationUpdate}
+                  selectedComponent={selectedComponent}
+                />
+                {navConfig?.navigation === "SubCategory" ? (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                      Category Pages
+                    </label>
+                    {renderPageSelect(
+                      navConfig.targetPageId,
+                      // (targetPageId) =>
+                      //   updateProductNavigation(
+                      //     selectedComponent.id,
+                      //     index,
+                      //     targetPageId,
+                      //     navConfig.enabled,
+                      //     navConfig.navigation
+                      //   ),
+                      (targetPageId) =>
+                        updateNavigationTarget(
+                          selectedComponent.id,
+                          targetPageId,
+                          navConfig?.id
+                        ),
+                      navConfig.navigation
+                    )}
                   </div>
-                )} */}
+                ) : (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                      Products & Filters
+                    </label>
+                    <ProductSelectorDialog />
+                  </div>
+                )}
+                {navConfig?.navigation === "AllProducts" &&
+                  navConfig?.targetPageId && (
+                    <div className="flex flex-col gap-3 p-3 border border-gray-200 rounded-md mt-2">
+                      {/* Products count */}
+                      {navConfig?.products?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Package size={16} className="text-blue-500" />
+                            <span className="text-sm font-medium text-blue-500">
+                              Selected Products:
+                            </span>
+                          </div>
+                          <span className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300">
+                            {navConfig.products.length}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Tags */}
+                      {navConfig?.tags?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Tag size={16} className="text-blue-500" />
+                            <span className="text-sm font-medium text-blue-500">
+                              Tags:
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {navConfig.tags.map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300"
+                              >
+                                {tag.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Categories */}
+                      {navConfig?.categories?.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Folder size={16} className="text-blue-500" />
+                            <span className="text-sm font-medium text-blue-500">
+                              Categories
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {navConfig.categories.map((cat) => (
+                              <span
+                                key={cat.id}
+                                className="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-500 border border-blue-300"
+                              >
+                                {cat.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
             );
           })}
@@ -516,7 +790,7 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
       </div>
       {/* Allow navigation in edit mode */}
       <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-md">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
+        <h4 className="text-sm font-medium text-blue-500 mb-2">
           Allow Edit Mode navigation
         </h4>
         <div className="flex items-center space-x-2">
@@ -528,7 +802,7 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
           />
           <Label
             htmlFor="allow-navigation"
-            className="text-sm font-medium text-blue-800"
+            className="text-sm font-medium text-blue-500"
           >
             On/Off
           </Label>
@@ -536,7 +810,7 @@ const NavigationPropertyPanel = ({ selectedComponent }) => {
       </div>
       {/* Navigation Summary */}
       <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-md">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">
+        <h4 className="text-sm font-medium text-blue-500 mb-2">
           Navigation Summary
         </h4>
         <div className="text-xs text-blue-700 space-y-1">

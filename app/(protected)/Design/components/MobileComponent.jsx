@@ -17,6 +17,7 @@ import {
   renderBrands,
   renderSubCategBrands,
 } from "./MobileComponentRenderers";
+import ProductListing from "./ProductListing";
 
 const MobileComponent = ({
   component,
@@ -25,10 +26,10 @@ const MobileComponent = ({
   onDelete,
   isPreview = false,
 }) => {
-  const bannerAutoPlayRef = useRef(component.props.autoPlay);
-  const bannerIntervalRef = useRef(component.props.interval);
-  const bodyPlainAutoPlayRef = useRef(component.props.autoPlay);
-  const bodyPlainIntervalRef = useRef(component.props.interval);
+  const bannerAutoPlayRef = useRef(component?.props?.autoPlay);
+  const bannerIntervalRef = useRef(component?.props?.interval);
+  const bodyPlainAutoPlayRef = useRef(component?.props?.autoPlay);
+  const bodyPlainIntervalRef = useRef(component?.props?.interval);
   const {
     handleComponentClick,
     updateComponentNavigation,
@@ -39,74 +40,73 @@ const MobileComponent = ({
   } = useJeebContext();
 
   // Handle image click
-  const handleImageClick = (componentId, imageIndex, targetPageId, enabled) => {
-    if (!allowEditModeNavigation) return;
+  const handleImageClick = (componentId, imageIndex, targetPageId) => {
+    if (!(allowEditModeNavigation || isPreview)) return;
     console.log(
-      "handleImageClick.......componentId, imageIndex, targetPageId, enabled",
+      "handleImageClick.......componentId, imageIndex, targetPageId",
       componentId,
       imageIndex,
-      targetPageId,
-      enabled
+      targetPageId
     );
     handleComponentClick(componentId, {
       type: "image",
       index: imageIndex,
     });
     // Set navigation for an image
-    updateImageNavigation(componentId, imageIndex, targetPageId, enabled);
+    // updateImageNavigation(componentId, imageIndex, targetPageId, enabled);
   };
 
   // Handle item click
-  const handleItemClick = (componentId, itemIndex, targetPageId, enabled) => {
-    if (!allowEditModeNavigation) return;
+  const handleItemClick = (componentId, itemIndex, targetPageId) => {
+    if (!(allowEditModeNavigation || isPreview)) return;
     console.log(
-      "handleItemClick.......componentId, imageIndex, targetPageId, enabled",
+      "handleItemClick.......componentId, imageIndex, targetPageId",
       componentId,
       itemIndex,
-      targetPageId,
-      enabled
+      targetPageId
     );
     handleComponentClick(componentId, {
       type: "item",
       index: itemIndex,
     });
     // Set navigation for an item
-    updateItemNavigation(componentId, itemIndex, targetPageId, enabled);
+    // updateItemNavigation(componentId, itemIndex, targetPageId, enabled);
   };
 
   // Handle product click
-  const handleProductClick = (
-    componentId,
-    productIndex,
-    targetPageId,
-    enabled
-  ) => {
-    if (!allowEditModeNavigation) return;
+  const handleProductClick = (componentId, productIndex, targetPageId) => {
+    if (!(allowEditModeNavigation || isPreview)) return;
     handleComponentClick(componentId, {
       type: "product",
       index: productIndex,
     });
     // Set navigation for a product
-    updateProductNavigation(componentId, productIndex, targetPageId, enabled);
+    // updateProductNavigation(componentId, productIndex, targetPageId, enabled);
   };
 
   // Handle component click
-  const handleClick = (componentId, targetPageId, enabled) => {
-    console.log("handle click", componentId, targetPageId, enabled);
-    if (!allowEditModeNavigation) return;
+  const handleClick = (componentId, targetPageId) => {
+    console.log(
+      "handle click",
+      componentId,
+      targetPageId,
+      allowEditModeNavigation,
+      isPreview
+    );
+    if (!(allowEditModeNavigation || isPreview)) return;
     handleComponentClick(componentId, {
       type: "component",
     });
     // Set navigation for component
-    updateComponentNavigation(componentId, targetPageId, enabled);
+    // updateComponentNavigation(componentId, targetPageId, enabled);
   };
 
   // Keep refs in sync with latest props at runtime
   useEffect(() => {
-    bannerAutoPlayRef.current = component.props.autoPlay;
-    bannerIntervalRef.current = component.props.interval;
+    bannerAutoPlayRef.current = component?.props?.autoPlay;
+    bannerIntervalRef.current = component?.props?.interval;
     // If autoplay is turned off, clear timeout immediately
-    if (!component.props.autoPlay) {
+    if (!component?.props?.autoPlay) {
       if (bannerSliderRef.current) {
         bannerSliderRef.current.slides && clearTimeout(timeoutId.current);
       }
@@ -116,16 +116,16 @@ const MobileComponent = ({
         clearTimeout(timeoutId.current);
         timeoutId.current = setTimeout(() => {
           bannerSliderRef.current.next();
-        }, component.props.interval || 3000);
+        }, component?.props?.interval || 3000);
       }
     }
-  }, [component.props.autoPlay, component.props.interval]);
+  }, [component?.props?.autoPlay, component?.props?.interval]);
 
   useEffect(() => {
-    bodyPlainAutoPlayRef.current = component.props.autoPlay;
-    bodyPlainIntervalRef.current = component.props.interval;
+    bodyPlainAutoPlayRef.current = component?.props?.autoPlay;
+    bodyPlainIntervalRef.current = component?.props?.interval;
     // If autoplay is turned off, clear timeout immediately
-    if (!component.props.autoPlay) {
+    if (!component?.props?.autoPlay) {
       if (bodyPlainSliderRef.current) {
         bodyPlainSliderRef.current.slides && clearTimeout(timeoutId.current);
       }
@@ -135,10 +135,10 @@ const MobileComponent = ({
         clearTimeout(timeoutId.current);
         timeoutId.current = setTimeout(() => {
           bodyPlainSliderRef.current.next();
-        }, component.props.interval || 3000);
+        }, component?.props?.interval || 3000);
       }
     }
-  }, [component.props.autoPlay, component.props.interval]);
+  }, [component?.props?.autoPlay, component?.props?.interval]);
 
   const [bannerSliderRef] = useKeenSlider(
     {
@@ -303,7 +303,7 @@ const MobileComponent = ({
 
   const handleDelete = (e) => {
     e.stopPropagation();
-    onDelete(component.id);
+    onDelete(component?.id);
   };
 
   const renderComponent = () => {
@@ -315,7 +315,7 @@ const MobileComponent = ({
       handleClick,
     };
 
-    switch (component.type) {
+    switch (component?.type) {
       case "banner":
         return renderBanner({
           ...commonProps,
@@ -369,12 +369,14 @@ const MobileComponent = ({
 
       case "productsGrid":
         return renderProductsGrid(commonProps);
+      case "productsList":
+        return <ProductListing {...commonProps} />;
 
       default:
         return (
           <div className="p-4 bg-red-50 border border-red-200 rounded">
             <p className="text-red-600 text-sm">
-              Unknown component type: {component.type}
+              Unknown component type: {component?.type}
             </p>
           </div>
         );
@@ -398,7 +400,7 @@ const MobileComponent = ({
       {/* Selection indicator - only show when not in preview */}
       {isSelected && !isPreview && (
         <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-          {component.type}
+          {component?.type}
         </div>
       )}
     </div>

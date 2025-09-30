@@ -24,10 +24,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/app/components/ui/tabs";
-import { Input } from "@/app/components/ui/input";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pencil, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useJeebContext } from "@/app/context/JeebContext";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { TemplateDialog } from "./components/TemplateDialog";
+import NewDesignDialog from "./components/NewDesignDialog";
 
 export default function MobileBuilderPage() {
   const {
@@ -39,23 +40,39 @@ export default function MobileBuilderPage() {
     setCanvasScale,
     designName,
     showPreview,
-    showSaveModal,
-    showLoadModal,
-    isSaving,
-    hasUnsavedChanges,
+    // showSaveModal,
+    // showLoadModal,
+    // isSaving,
+    // hasUnsavedChanges,
+    //template dialog
+    templates,
+    selectedTemplate,
+    setSelectedTemplate,
+    defaultTemplate,
+    setDefaultTemplate,
+    //loaders for mobile view
+    isLoadingTemplates,
+    isLoadingPages,
+    isLoadingComponents,
 
     // Computed values
-    currentPage,
+    // currentPage,
     components,
 
     // State setters
     setDesignName,
     setShowPreview,
-    setShowSaveModal,
-    setShowLoadModal,
+    // setShowSaveModal,
+    // setShowLoadModal,
 
     // Page management
+    isSheetOpen,
+    setIsSheetOpen,
+    editingPage,
     handleAddPage,
+    handleEditPage,
+    handleSavePage,
+
     handleDeletePage,
     handleRenamePage,
     handleSwitchPage,
@@ -69,15 +86,28 @@ export default function MobileBuilderPage() {
     handleDeleteComponent,
     handleImageUpload,
     handleRemoveImage,
+    processImage,
+    onRemoveItem,
+    processItem,
+    processVideo,
+    processVideoUpdate,
+    itemNavigationUpdate,
 
     // Design management
-    saveDesign,
-    exportDesign,
+    // saveDesign,
+    // exportDesign,
     handleNewDesign,
+    handleSaveTitle,
+    isEditingTitle,
+    setIsEditingTitle,
+    loadingTitle,
+    loadingCreate,
 
     // Canvas scale
     increaseScale,
     decreaseScale,
+    //navigation
+    goBack,
   } = useJeebContext();
   const [openPalette, setOpenPalette] = useState(true);
   const [openProps, setOpenProps] = useState(true);
@@ -88,18 +118,6 @@ export default function MobileBuilderPage() {
     })
   );
 
-  const handleSaveDesign = (savedDesign) => {
-    alert("Design saved successfully!");
-  };
-
-  const handleLoadDesign = (loadedDesign) => {
-    if (loadedDesign.pages) {
-      // Handle through context
-    } else if (loadedDesign.components) {
-      // Handle through context
-    }
-    alert("Design loaded successfully!");
-  };
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
@@ -137,6 +155,9 @@ export default function MobileBuilderPage() {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+  const currentPage = useMemo(() => {
+    return pages.find((page) => page.id === currentPageId) || null;
+  }, [pages, currentPageId]);
 
   return (
     <div className="h-screen bg-gray-100 flex">
@@ -172,7 +193,13 @@ export default function MobileBuilderPage() {
                 <PageManager
                   pages={pages}
                   currentPageId={currentPageId}
-                  onAddPage={handleAddPage}
+                  isSheetOpen={isSheetOpen}
+                  setIsSheetOpen={setIsSheetOpen}
+                  editingPage={editingPage}
+                  handleAddPage={handleAddPage}
+                  handleEditPage={handleEditPage}
+                  handleSavePage={handleSavePage}
+                  selectedTemplate={selectedTemplate}
                   onDeletePage={handleDeletePage}
                   onRenamePage={handleRenamePage}
                   onSwitchPage={handleSwitchPage}
@@ -181,23 +208,14 @@ export default function MobileBuilderPage() {
                   onSelectComponent={handleSelectComponent}
                   onUpdateComponent={handleUpdateComponent}
                   onDeleteComponent={handleDeleteComponent}
+                  isLoadingPages={isLoadingPages}
+                  isLoadingComponents={isLoadingComponents}
                 />
               </div>
             </TabsContent>
             <TabsContent value="components">
               {/* Components */}
               <div className="flex-1 p-4 m-4">
-                <div className="relative w-auto mb-4">
-                  <Input
-                    type="text"
-                    placeholder="Search"
-                    className="pl-10 pr-4 py-2 border border-gray-400 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-100"
-                  />
-                  <Search
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                    size={16}
-                  />
-                </div>
                 <ComponentPalette onAddComponent={handleAddComponent} />
               </div>
             </TabsContent>
@@ -231,19 +249,44 @@ export default function MobileBuilderPage() {
           </div>
           <div className="bg-white border-b border-gray-200 p-4 flex flex-wrap items-center sm:justify-between justify-start">
             <div className="flex items-center gap-2 w-auto">
-              <input
-                type="text"
-                value={designName}
-                onChange={(e) => setDesignName(e.target.value)}
-                className="text-sm font-semibold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500 px-2 py-1 rounded"
-              />
-
-              {/* Current Page Indicator */}
-              {/* <div className="flex items-center space-x-2 ml-8 px-3 py-1 bg-blue-50 rounded-md">
-                <span className="text-sm text-blue-600 font-medium">
-                  {currentPage?.name || "Page"} • {components.length} components
-                </span>
-              </div> */}
+              {isEditingTitle ? (
+                <>
+                  <input
+                    type="text"
+                    value={designName}
+                    onChange={(e) => setDesignName(e.target.value)}
+                    className="text-sm font-semibold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-blue-500 px-2 py-1 rounded"
+                    autoFocus
+                  />
+                  <button
+                    disabled={loadingTitle}
+                    onClick={handleSaveTitle}
+                    className="text-green-600 hover:text-green-800"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button
+                    disabled={loadingTitle}
+                    onClick={() => {
+                      setDesignName(selectedTemplate?.name);
+                      setIsEditingTitle(false);
+                    }}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <X size={16} />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm font-semibold">{designName}</span>
+                  <button
+                    onClick={() => setIsEditingTitle(true)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                </>
+              )}
             </div>
             <div className="flex items-center gap-2 mx-2 w-auto mt-2 sm:mt-0">
               <button
@@ -261,37 +304,17 @@ export default function MobileBuilderPage() {
               </button>
             </div>
             <div className="flex items-center gap-2 w-auto mt-2 sm:mt-0">
-              <button
-                onClick={saveDesign}
-                disabled={isSaving}
-                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-              >
-                {isSaving ? "Saving..." : "Save"}
-              </button>
-              <button
-                onClick={exportDesign}
-                className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
-              >
-                Export
-              </button>
-              {/* <button
-                onClick={() => setShowSaveModal(true)}
-                className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
-              >
-                Save As
-              </button> */}
-              {/* <button
-                onClick={() => setShowLoadModal(true)}
-                className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-              >
-                Load
-              </button> */}
-              <button
-                onClick={handleNewDesign}
-                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-              >
-                New
-              </button>
+              <TemplateDialog
+                templates={templates}
+                selectedTemplate={selectedTemplate}
+                setSelectedTemplate={setSelectedTemplate}
+                defaultTemplate={defaultTemplate}
+                setDefaultTemplate={setDefaultTemplate}
+              />
+              <NewDesignDialog
+                loadingCreate={loadingCreate}
+                handleNewDesign={handleNewDesign}
+              />
             </div>
           </div>
 
@@ -308,24 +331,14 @@ export default function MobileBuilderPage() {
                 onUpdateComponent={handleUpdateComponent}
                 onDeleteComponent={handleDeleteComponent}
                 scale={canvasScale}
+                isLoadingTemplates={isLoadingTemplates}
+                isLoadingPages={isLoadingPages}
+                isLoadingComponents={isLoadingComponents}
+                currentPage={currentPage}
+                goBack={goBack}
               />
             </SortableContext>
           </div>
-
-          <SaveLoadModal
-            isOpen={showSaveModal}
-            onClose={() => setShowSaveModal(false)}
-            onSave={handleSaveDesign}
-            currentDesign={{ pages }}
-            mode="save"
-          />
-
-          <SaveLoadModal
-            isOpen={showLoadModal}
-            onClose={() => setShowLoadModal(false)}
-            onLoad={handleLoadDesign}
-            mode="load"
-          />
         </div>
 
         {/* Property Panel */}
@@ -342,6 +355,12 @@ export default function MobileBuilderPage() {
             onUpdateComponent={handleUpdateComponent}
             onImageUpload={handleImageUpload}
             onImageRemove={handleRemoveImage}
+            processImage={processImage}
+            onRemoveItem={onRemoveItem}
+            processItem={processItem}
+            processVideo={processVideo}
+            processVideoUpdate={processVideoUpdate}
+            itemNavigationUpdate={itemNavigationUpdate}
           />
         </div>
 
@@ -352,6 +371,13 @@ export default function MobileBuilderPage() {
             currentPageId={currentPageId}
             onClose={() => setShowPreview(false)}
             components={components}
+            scale={canvasScale}
+            isLoadingTemplates={isLoadingTemplates}
+            isLoadingPages={isLoadingPages}
+            isLoadingComponents={isLoadingComponents}
+            increaseScale={increaseScale}
+            decreaseScale={decreaseScale}
+            currentPage={currentPage}
           />
         )}
       </DndContext>
