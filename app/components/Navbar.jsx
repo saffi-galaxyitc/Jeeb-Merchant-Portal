@@ -3,6 +3,7 @@
 import { useJeebContext } from "@/app/context/JeebContext";
 import { ArrowLeft, Play } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import JeebTestflightDialog from "./JeebTestflightDialog";
 const Button = ({
   children,
   variant = "default",
@@ -71,6 +72,7 @@ export default function Navbar() {
         <Button size="sm" onClick={openPaymentModal}>
           Publish
         </Button>
+        <JeebTestflightDialog />
       </div>
     </header>
   );

@@ -47,7 +47,7 @@ const STORAGE_KEYS = {
 const navItems = [
   { href: "/design", icon: SplinePointer, label: "Design" },
   { href: "/products", icon: LayoutDashboard, label: "Products" },
-  { href: "/imageToolkit", icon: Settings2, label: "Image Toolkit" },
+  // { href: "/imageToolkit", icon: Settings2, label: "Image Toolkit" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 

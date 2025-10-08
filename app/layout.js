@@ -12,9 +12,9 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Galaxy Cart",
+  title: "JEEB | Merchant Portal",
   description:
-    "Galaxy Cart is an application powered by Galaxy Solutions Itc, used to onboard merchants to help design the generate their very own e-commerce mobile application where they can sell there products.",
+    "Jeeb merchant portal is an application powered by Galaxy Solutions Itc, used to onboard merchants to help design the generate their very own e-commerce mobile application where they can sell there products.",
 };
 
 export default function RootLayout({ children }) {
